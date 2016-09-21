@@ -1,0 +1,26 @@
+{
+  "name": "botauth",
+  "version": "0.1.0",
+  "description": "OAuth Middleware for BotFramework",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattdot/botauth.git"
+  },
+  "keywords": [
+    "botframework",
+    "oauth"
+  ],
+  "author": "Matt Dotson <mdotson@microsoft.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattdot/botauth/issues"
+  },
+  "homepage": "https://github.com/mattdot/botauth#readme",
+  "dependencies": {
+    "botbuilder": "^3.2.3"
+  }
+}
