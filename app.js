@@ -14,9 +14,8 @@ var botauth = function() {
 };
 
 botauth.prototype.auth = function(providerId) {
-    return function(session, args, next) {
-        console.log("[authfn: %s]", providerId);
-        next();
+    return function(session, result, skip) {
+        console.log("[authfn: %s] %j", providerId, result);
     };
 }
 
