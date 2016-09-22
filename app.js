@@ -2,7 +2,7 @@ const builder = require("botbuilder");
 
 var authlib = new builder.Library("botauth");
 authlib.dialog("auth", new builder.SimpleDialog(function(session, args) {
-        if(args.resumed) {
+        if(args && args.resumed) {
             console.log("[botauth:auth] resumed");
         } else {
             console.log("[botauth:auth] started");
