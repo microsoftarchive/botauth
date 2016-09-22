@@ -4,6 +4,7 @@ var authlib = new builder.Library("botauth");
 authlib.dialog("auth", new builder.SimpleDialog(function(session, args) {
         if(args && args.resumed) {
             console.log("[botauth:auth] resumed");
+            session.endDialog("thanks");
         } else {
             console.log("[botauth:auth] started");
             var msg = new builder.Message(session)
@@ -13,7 +14,7 @@ authlib.dialog("auth", new builder.SimpleDialog(function(session, args) {
                         .button("connect", "http://microsoft.com") 
                 ]);
     
-            session.endDialog(msg); 
+            session.send(msg); 
         }
 }));
 
@@ -41,7 +42,7 @@ botauth.prototype.middleware = function(options) {
     
     return { 
         botbuilder: function(session, next) {
-            console.log("[botbuilder]\n%j", session);
+            console.log("[botbuilder]");
             if(!session.userData["authData"]) {
                 session.beginDialog("botauth:auth");
             } else {
