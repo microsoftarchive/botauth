@@ -7,15 +7,15 @@ botauth.prototype.middleware = function(options) {
     
     return { 
         botbuilder: function(session, next) {
-            console.log("[botbuilder]");
+            console.log("[botbuilder]\n%j", session);
             next();
         },
         receive: function(session, next) {
-            console.log("[receive]");
+            console.log("[receive]\n%j", session);
             next();
         },
         send: function(session, next) {
-            console.log("[send]");
+            console.log("[send]\n%j");
             next();
         }
     };
