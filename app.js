@@ -6,6 +6,14 @@ authlib.dialog("auth", new builder.SimpleDialog(function(session, args) {
             console.log("[botauth:auth] resumed");
         } else {
             console.log("[botauth:auth] started");
+            var msg = new builder.Message(session)
+                .attachments([ 
+                    new builder.SigninCard(session) 
+                        .text("Connect to OAuth Provider") 
+                        .button("connect", "http://microsoft.com") 
+                ]);
+    
+            session.endDialog(msg); 
         }
 }));
 
@@ -15,7 +23,7 @@ var botauth = function() {
 
 botauth.prototype.auth = function(providerId) {
     return function(session, result, skip) {
-        console.log("[authfn: %s] %j", providerId, result);
+        console.log("[authfn: %s] %j %j", providerId, result, skip);
     };
 }
 
@@ -34,8 +42,8 @@ botauth.prototype.middleware = function(options) {
     return { 
         botbuilder: function(session, next) {
             console.log("[botbuilder]\n%j", session);
-            if(session.userData["authData"]) {
-
+            if(!session.userData["authData"]) {
+                session.beginDialog("botauth:auth");
             } else {
                 next();
             }
