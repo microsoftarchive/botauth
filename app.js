@@ -51,8 +51,10 @@ botauth.prototype.provider = function (name, options) {
     }
 
     _server.get("/auth/" + name, function(req, res) {
-        
+
     });
+
+    return this;
 };
 
 botauth.prototype.library = function() {
