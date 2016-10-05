@@ -30,6 +30,7 @@ export class Authenticator {
         //override default options with options passed by caller
         this._options = Object.assign( { basePath : "botauth" }, options);
 
+        this._server.use(<any>passport.initialize());
         //add routes for handling oauth redirect and callbacks
         routes.add(this._server, this._bot);
 
