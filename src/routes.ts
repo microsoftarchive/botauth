@@ -3,14 +3,14 @@ import builder = require("botbuilder");
 import passport = require("passport");
 
 export function add(server : restify.Server, bot : builder.UniversalBot) {
-    server.get('/botauth/:providerId/auth', function(req : restify.Request, res: restify.Response, next : restify.RequestHandler) {
+    server.get('/botauth/:providerId', function(req : restify.Request, res: restify.Response, next : restify.RequestHandler) {
         let providerId : string = req.params.providerId;
         let state : string = (<any>req.query).state;
         //todo: scrub provider
         return passport.authenticate(providerId, { state : state })(<any>req, <any>res, <any>next);
     });
 
-    server.get('/botauth/:providerId/auth/callback',  
+    server.get('/botauth/:providerId/callback',  
         function(req : restify.Request, res: restify.Response, next : restify.RequestHandler) {
             let providerId : string = req.params.providerId;
             return passport.authenticate(providerId) (<any> req, <any> res, <any> next);
