@@ -36,6 +36,16 @@ export class Authenticator {
 
         //add auth dialogs to a library
         this._bot.library(library.build());
+
+        //standard passportjs serialization
+        passport.serializeUser(function (user, done) {
+            done(null, JSON.stringify(user));
+        });
+
+        //standard passportjs deserialization
+        passport.deserializeUser(function (userId, done) {
+            return done(null, JSON.parse(userId));
+        });
     }
 
     /**
@@ -47,12 +57,10 @@ export class Authenticator {
      */
     public provider(name : string, strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
 
-        var args = {
+        let args = Object.assign({
             callbackURL : this.callbackUrl(name)
-        };
-        console.log("callbackURL:%s", args.callbackURL);
+        }, options.args);
 
-        args = Object.assign(args, options.args);
         //todo: set callback url
         let s : passport.Strategy = new strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
             profile.accessToken = accessToken;
@@ -88,6 +96,8 @@ export class Authenticator {
             }
         };
     }
+
+
 
     // botauth.prototype.middleware = function(filters) {
 //     var self = this;

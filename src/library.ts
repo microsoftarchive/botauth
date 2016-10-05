@@ -9,8 +9,8 @@ export function build() {
     let authlib = new builder.Library(libraryName);
     authlib.dialog(dialogName, new builder.SimpleDialog(function(session : builder.Session, args : any) {
 
-        console.log(`[${name}] args = %j`, args);
-        console.log(`[${name}] userData = %j`, session.userData);
+        // console.log(`[${name}] args = %j`, args);
+        // console.log(`[${name}] userData = %j`, session.userData);
         let providerId = args.providerId;
         let authUrl = args.authUrl;
 
