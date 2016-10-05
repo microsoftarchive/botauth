@@ -9,7 +9,8 @@ import library = require('./library');
 import routes = require('./routes');
 
 export interface IBotAuthOptions {
-    baseUrl : string
+    baseUrl : string,
+    basePath : string
 }
 
 export interface IBotAuthProviderOptions {
@@ -25,7 +26,7 @@ export class Authenticator {
     public constructor(server : restify.Server, bot : builder.UniversalBot, options : IBotAuthOptions) {
         this._bot = bot;
         this._server = server;
-        this._options = options;
+        this._options = Object.assign( { basePath : "botauth" }, options);
 
         routes.add(this._server, this._bot);
     }
@@ -40,7 +41,7 @@ export class Authenticator {
     public provider(name : string, strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
 
         var args = {
-            callbackURL : `${this._options.baseUrl}/auth/${name}/callback`
+            callbackURL : this.callbackUrl(name)
         };
         console.log("callbackURL:%s", args.callbackURL);
 
@@ -63,8 +64,17 @@ export class Authenticator {
      * @return {IDialogWaterfallStep} 
      */
     public authenticate(providerId : string) : builder.IDialogWaterfallStep {
-        return (session : builder.Session, args : any, skip : (results?: builder.IDialogResult<any>) => void) => {
-            session.beginDialog(library.name);
+        return (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
+            if(args.resumed === builder.ResumeReason.completed) {
+                skip();
+            } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.forward || args.resumed === builder.ResumeReason.notCompleted) {
+                session.endConversation("auth failed, ending conversation");
+                return;
+            } 
+            session.beginDialog(library.name, { 
+                providerId : providerId, 
+                authUrl : this.authUrl(providerId)
+            });
         };
     }
 
@@ -97,5 +107,13 @@ export class Authenticator {
 //         }
 //     };
 // }
+
+    private callbackUrl(providerName : string) {
+        return `${this._options.baseUrl}/${this._options.basePath}/${providerName}/callback`;
+    }
+
+    private authUrl(providerName : string) {
+        return `${this._options.baseUrl}/${this._options.basePath}/${providerName}`;
+    }
 
 }

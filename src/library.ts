@@ -1,12 +1,15 @@
 import builder = require("botbuilder");
 
-export const name : string = "botauth";
+const libraryName : string = "botauth";
+const dialogName : string = "auth";
+
+export const name : string = `${libraryName}:${dialogName}`;
 
 export function build() {
     let authlib = new builder.Library(name);
     authlib.dialog("auth", new builder.SimpleDialog(function(session : builder.Session, args : any) {
 
-        console.log("[botauth:auth] args = %j", args);
+        console.log(`${name} args = %j`, args);
         console.log("[botauth:auth] userData = %j", session.userData);
         let providerId = args.providerId;
         let authUrl = args.authUrl;
