@@ -65,16 +65,20 @@ export class Authenticator {
      */
     public authenticate(providerId : string) : builder.IDialogWaterfallStep {
         return (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
-            if(args.resumed === builder.ResumeReason.completed) {
-                skip();
-            } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.forward || args.resumed === builder.ResumeReason.notCompleted) {
-                session.endConversation("auth failed, ending conversation");
-                return;
-            } 
-            session.beginDialog(library.name, { 
-                providerId : providerId, 
-                authUrl : this.authUrl(providerId)
-            });
+            if(args) {
+                if(args.resumed === builder.ResumeReason.completed) {
+                    skip();
+                    return;
+                } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.forward || args.resumed === builder.ResumeReason.notCompleted) {
+                    session.endConversation("auth failed, ending conversation");
+                    return;
+                } 
+            } else {
+                session.beginDialog(library.name, { 
+                    providerId : providerId, 
+                    authUrl : this.authUrl(providerId) 
+                });
+            }
         };
     }
 
