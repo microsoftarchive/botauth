@@ -16,7 +16,7 @@ export interface IBotAuthProviderOptions {
     args : any
 }
 
-export class BotAuth {
+export class Authenticator {
 
     private _options : IBotAuthOptions;
     private _bot : builder.UniversalBot;
@@ -37,7 +37,7 @@ export class BotAuth {
      * @param {IBotAuthProviderOptions} options
      * @return {BotAuth} this
      */
-    public provider(strategy : any, options : IBotAuthProviderOptions) : BotAuth { 
+    public provider(strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
 
         var args = {
             callbackURL : `${this._options.baseUrl}/auth/${name}/callback`
