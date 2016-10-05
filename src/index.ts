@@ -26,9 +26,15 @@ export class Authenticator {
     public constructor(server : restify.Server, bot : builder.UniversalBot, options : IBotAuthOptions) {
         this._bot = bot;
         this._server = server;
+
+        //override default options with options passed by caller
         this._options = Object.assign( { basePath : "botauth" }, options);
 
+        //add routes for handling oauth redirect and callbacks
         routes.add(this._server, this._bot);
+
+        //add auth dialogs to a library
+        this._bot.library(library.build());
     }
 
     /**
