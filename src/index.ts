@@ -37,7 +37,7 @@ export class Authenticator {
      * @param {IBotAuthProviderOptions} options
      * @return {BotAuth} this
      */
-    public provider(strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
+    public provider(name : string, strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
 
         var args = {
             callbackURL : `${this._options.baseUrl}/auth/${name}/callback`
@@ -46,12 +46,13 @@ export class Authenticator {
 
         args = Object.assign(args, options.args);
         //todo: set callback url
-
-        passport.use(name, new strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
+        let s : passport.Strategy = new strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
             profile.accessToken = accessToken;
             profile.refreshToken = refreshToken;
             return done(null, profile);
-        }));
+        });
+
+        passport.use(name, s);
 
         return this;
     }
