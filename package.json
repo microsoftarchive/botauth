@@ -25,6 +25,9 @@
     "passport": "^0.3.2"
   },
   "devDependencies": {
-    "mocha": "^3.0.2"
+    "gulp": "^3.9.1",
+    "gulp-typescript": "^3.0.2",
+    "mocha": "^3.0.2",
+    "typescript": "^2.0.3"
   }
 }
