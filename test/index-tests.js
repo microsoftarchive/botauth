@@ -5,8 +5,10 @@ describe('botauth', function() {
     describe('#configure', function() {
         it('should error if bot is not passed', function() {
             assert.throws(function() {
-                botauth.configure();
+                var ba = new botauth();
             });
         });
+
+        
     });
 });
