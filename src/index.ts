@@ -16,6 +16,7 @@ export interface IBotAuthOptions {
 }
 
 export interface IBotAuthProviderOptions {
+    strategy : passport.Strategy,
     args : any
 }
 
@@ -65,13 +66,12 @@ export class Authenticator {
      * @param {IBotAuthProviderOptions} options
      * @return {BotAuth} this
      */
-    public provider(name : string, strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
+    public provider(name : string, options : IBotAuthProviderOptions) : Authenticator { 
         let args = Object.assign({
             callbackURL : this.callbackUrl(name)
         }, options.args);
 
-        let s : passport.Strategy = new strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
-            console.log("token %s", accessToken);
+        let s : passport.Strategy = new args.strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
             profile.accessToken = accessToken;
             profile.refreshToken = refreshToken;
             return done(null, profile);
