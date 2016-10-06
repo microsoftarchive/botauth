@@ -63,6 +63,7 @@ export class Authenticator {
 
         //todo: set callback url
         let s : passport.Strategy = new strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
+            console.log("token %s", accessToken);
             profile.accessToken = accessToken;
             profile.refreshToken = refreshToken;
             return done(null, profile);

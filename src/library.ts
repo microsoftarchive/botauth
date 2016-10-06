@@ -11,8 +11,9 @@ export function build() {
 
         // console.log(`[${name}] args = %j`, args);
         // console.log(`[${name}] userData = %j`, session.userData);
-        let providerId = args.providerId;
-        let authUrl = args.authUrl;
+        
+        let providerId = args ? args.providerId : "";
+        let authUrl = args ? args.authUrl : "";
 
         if(session.userData && session.userData.botauth && session.userData.botauth.tokens && session.userData.botauth.tokens[providerId]) {
             console.log(`[${name}] resumed`);
