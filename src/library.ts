@@ -29,8 +29,10 @@ export function build(store : IAuthorizationStore) {
                 _id :  authId,
                 address : session.message.address   
             };
-            
+
             store.saveAuthorization(authObj, (err:Error, id : string) => {
+                console.log("[authlib > store.saveAuthorization] %j %j", err, id);
+                
                 if(!err) {
                     //send the signin card to the user
                     var msg = new builder.Message(session)
