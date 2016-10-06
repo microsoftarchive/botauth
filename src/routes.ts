@@ -16,9 +16,11 @@ export function add(server : restify.Server, bot : builder.UniversalBot) {
             return passport.authenticate(providerId) (<any> req, <any> res, <any> next);
         },
         function(req : restify.Request, res: restify.Response) {
+            
             let providerId : string = req.params.providerId;
             let state : string = (<any>req.query).state;
-
+            console.log(`[botauth/${providerId}/callback]`);
+            
             //todo: get addr from state
             let encodedAddr : string = (<any>req.query).address;
 
