@@ -34,7 +34,7 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
             store.findAuthorization(state, (findErr : Error, authorization : IAuthorization) => {
                 if(!findErr) {
                     //save authorization for next middleware to use
-                    (<any>req).locals.authorization = authorization;
+                    Object.assign((<any>req).locals, { authorization : authorization });
                     next()
                 } else {
                     //did not find authorization.  may be expired, reused, or never there

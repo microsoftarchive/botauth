@@ -14,7 +14,7 @@ export function build(store : IAuthorizationStore) {
 
     //core auth dialog which shows the sign-in card and waits for a response.
     authlib.dialog(dialogName, new builder.SimpleDialog(function(session : builder.Session, args : any) {
-        
+        console.log(`[${name}] args %j`, args);
         let providerId = args ? args.providerId : "";
         let authUrl = args ? args.authUrl : "";
 
@@ -31,18 +31,19 @@ export function build(store : IAuthorizationStore) {
             };
 
             store.saveAuthorization(authObj, (err:Error, id : string) => {
+                var connectUrl = `${authUrl}?state=${id}`;
                 console.log("[authlib > store.saveAuthorization] %j %j", err, id);
-                
                 if(!err) {
                     //send the signin card to the user
                     var msg = new builder.Message(session)
                         .attachments([ 
                             new builder.SigninCard(session)
                                 .text("Connect to OAuth Provider. You can say 'cancel' to go back without signing in.") 
-                                .button("connect", `${authUrl}?state=${id}`)
+                                .button("connect", connectUrl)
                         ]);
                     session.send(msg); 
                 } else {
+                    console.log("[authlib > store.saveAuthorization] error : %j", err);
                     throw err;
                 }
             });
