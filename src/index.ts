@@ -5,8 +5,10 @@ import builder = require('botbuilder');
 import passport = require('passport');
 import restify = require('restify');
 
-import library = require('./library');
-import routes = require('./routes');
+import * as routes from "./routes";
+import * as library from "./library";
+import { IAuthorizationStore, IAuthorization, IUser } from "./store";
+export { IAuthorization, IAuthorizationStore, IUser };
 
 export interface IBotAuthOptions {
     baseUrl : string,
@@ -22,29 +24,37 @@ export class Authenticator {
     private _options : IBotAuthOptions;
     private _bot : builder.UniversalBot;
     private _server : restify.Server;
+    private _store : IAuthorizationStore;
 
-    public constructor(server : restify.Server, bot : builder.UniversalBot, options : IBotAuthOptions) {
+    public constructor(server : restify.Server, bot : builder.UniversalBot, store : IAuthorizationStore, options : IBotAuthOptions) {
         this._bot = bot;
         this._server = server;
+        this._store = store;
 
         //override default options with options passed by caller
         this._options = Object.assign( { basePath : "botauth" }, options);
 
+        //configure restify/express to use passport
         this._server.use(<any>passport.initialize());
+
         //add routes for handling oauth redirect and callbacks
-        routes.add(this._server, this._bot);
+        routes.add(this._server, this._bot, this._store);
 
         //add auth dialogs to a library
-        this._bot.library(library.build());
+        this._bot.library(library.build(this._store));
 
-        //standard passportjs serialization
+        //passportjs serialize user to data store so that we can later look them up from cookie
         passport.serializeUser(function (user, done) {
-            done(null, JSON.stringify(user));
+            store.saveUser(user, (err : Error, id: string) => {
+                done(null, id);   
+            });
         });
 
-        //standard passportjs deserialization
+        //passportjs retrieve user data from data store when user has userId in cookie
         passport.deserializeUser(function (userId, done) {
-            return done(null, JSON.parse(userId));
+            store.findUser(userId, (err : Error, user : IUser) => {
+                return done(null, user);
+            });
         });
     }
 
@@ -56,12 +66,10 @@ export class Authenticator {
      * @return {BotAuth} this
      */
     public provider(name : string, strategy : any, options : IBotAuthProviderOptions) : Authenticator { 
-
         let args = Object.assign({
             callbackURL : this.callbackUrl(name)
         }, options.args);
 
-        //todo: set callback url
         let s : passport.Strategy = new strategy(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
             console.log("token %s", accessToken);
             profile.accessToken = accessToken;
@@ -99,37 +107,6 @@ export class Authenticator {
     }
 
 
-
-    // botauth.prototype.middleware = function(filters) {
-//     var self = this;
-
-//     //make sure that filters isn't null
-//     filters = filters || {};
-    
-//     return { 
-//         botbuilder: function(session, next) {
-//             console.log("[botbuilder]");
-//             console.log("dialogId = %s", session.options.dialogId);
-
-//             for(var prop in filters) {
-//                 var rx = filters[prop];
-//                 if(rx && rx.test(session.options.dialogId)) {
-//                     console.log("%s provider should authenticate");
-//                 } else {
-                    
-//                 }
-//             }
-
-//             if(!session.userData["authData"]) {
-//                 //session.beginDialog("botauth:auth");
-//                 next();
-//             } else {
-//                 next();
-//             }
-//         }
-//     };
-// }
-
     private callbackUrl(providerName : string) {
         return `${this._options.baseUrl}/${this._options.basePath}/${providerName}/callback`;
     }
@@ -137,5 +114,4 @@ export class Authenticator {
     private authUrl(providerName : string) {
         return `${this._options.baseUrl}/${this._options.basePath}/${providerName}`;
     }
-
 }
