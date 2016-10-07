@@ -64,9 +64,8 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
             let botStorage : builder.IBotStorage = bot.get("storage");
             let botContext : builder.IBotStorageContext = { address: addr, userId : addr.user.id, conversationId : addr.conversation.id, persistUserData : true, persistConversationData: true };
             botStorage.getData(botContext, (getErr : Error, data : builder.IBotStorageData) => {
+                console.log("\n[rest:/botauth/auth(getData)]\n%j\n%j", getErr, data);
                 if(!getErr) {
-                    console.log("\n[rest:/botauth/auth(getData)]\n%j", data);
-            
                     //validate authentication request
                     // var cs = data.privateConversationData["BotBuilder.Data.SessionState"].callstack;
                     // var csi = cs.findIndex((el : any, ind : number, arr : any) => { return el.id === "botauth:auth";});        
