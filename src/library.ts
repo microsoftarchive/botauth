@@ -14,9 +14,12 @@ export function build(store : IAuthorizationStore) {
 
     //core auth dialog which shows the sign-in card and waits for a response.
     authlib.dialog(dialogName, new builder.SimpleDialog(function(session : builder.Session, args : any) {
-        console.log(`[${name}] args %j`, args);
-        let providerId = args ? args.providerId : "";
-        let authUrl = args ? args.authUrl : "";
+        
+        let providerId = session.dialogData.providerId = (args ? args.providerId : session.dialogData.providerId);
+        let authUrl = session.dialogData.authUrl = (args ? args.authUrl : session.dialogData.authUrl);
+        session.save();
+
+        console.log(`[${name}] args %j %j %j`, args, providerId, authUrl);
 
         if(session.userData && session.userData.botauth && session.userData.botauth.tokens && session.userData.botauth.tokens[providerId]) {
             console.log(`[${name}] resumed`);

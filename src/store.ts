@@ -6,9 +6,14 @@ export interface IAuthorization {
    // expires : Date
 }
 
+export interface IUserId {
+    id : string, 
+    provider : string
+}
+
 export interface IUser {
-    _id:number,
-    provider: string,
+    id : string,
+    provider : string,
     displayName:string,
     name: {
         familyName: string,
@@ -23,6 +28,6 @@ export interface IUser {
 export interface IAuthorizationStore {
     findAuthorization(id : string, callback : (err : Error, auth : IAuthorization) => void) : void;
     saveAuthorization(auth : IAuthorization, callback : (err : Error, id : string) => void) : void;
-    findUser(id: string, callback : (err : Error, user : IUser) => void) : void;
-    saveUser(user : IUser, callback : (err : Error, id : string) => void) : void;
+    findUser(userId : IUserId, callback : (err : Error, user : IUser) => void) : void;
+    saveUser(user : IUser, callback : (err : Error, userId : IUserId) => void) : void;
 }

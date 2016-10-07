@@ -7,8 +7,8 @@ import restify = require('restify');
 
 import * as routes from "./routes";
 import * as library from "./library";
-import { IAuthorizationStore, IAuthorization, IUser } from "./store";
-export { IAuthorization, IAuthorizationStore, IUser };
+import { IAuthorizationStore, IAuthorization, IUser, IUserId } from "./store";
+export { IAuthorization, IAuthorizationStore, IUser, IUserId };
 
 export interface IBotAuthOptions {
     baseUrl : string,
@@ -45,14 +45,14 @@ export class Authenticator {
         this._bot.library(library.build(this._store));
 
         //passportjs serialize user to data store so that we can later look them up from cookie
-        passport.serializeUser(function (user, done) {
-            store.saveUser(user, (err : Error, id: string) => {
+        passport.serializeUser((user, done) => {
+            store.saveUser(user, (err : Error, id: IUserId) => {
                 done(null, id);   
             });
         });
 
         //passportjs retrieve user data from data store when user has userId in cookie
-        passport.deserializeUser(function (userId, done) {
+        passport.deserializeUser((userId, done) => {
             store.findUser(userId, (err : Error, user : IUser) => {
                 return done(null, user);
             });
@@ -67,7 +67,7 @@ export class Authenticator {
      * @return {BotAuth} this
      */
     public provider(name : string, options : IBotAuthProvider) : Authenticator { 
-        let args = Object.assign({
+        let args = Object.assign({ 
             callbackURL : this.callbackUrl(name)
         }, options.args);
 
