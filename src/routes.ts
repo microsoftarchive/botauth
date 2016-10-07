@@ -33,9 +33,14 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
             let state : string = (<any>req.query).state;
             store.findAuthorization(state, (findErr : Error, authorization : IAuthorization) => {
                 if(!findErr) {
-                    //save authorization for next middleware to use
-                    Object.assign((<any>req).locals, { authorization : authorization });
-                    next()
+                    if(authorization) {
+                        //save authorization for next middleware to use
+                        Object.assign((<any>req).locals, { authorization : authorization });
+                        next();
+                    } else {
+                        console.log("authorization not found");
+                        next();
+                    }
                 } else {
                     //did not find authorization.  may be expired, reused, or never there
                     next(findErr);
