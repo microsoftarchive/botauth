@@ -70,9 +70,9 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
                     // var cs = data.privateConversationData["BotBuilder.Data.SessionState"].callstack;
                     // var csi = cs.findIndex((el : any, ind : number, arr : any) => { return el.id === "botauth:auth";});        
                     //cs[csi].state["BotAuth.Token"] = encodedAddr;
-
+                    
                     if(!data.userData.botauth) data.userData.botauth = {};
-                    data.userData.botauth.tokens = Object.assign({}, data.userData.botauth.tokens, (<any>{})[providerId] = (<any>req).user);
+                    data.userData.botauth.tokens = Object.assign({}, data.userData.botauth.tokens, { [Symbol(providerId)] : (<any>req).user });
 
                     console.log("\n%j\n", data.userData);
 
