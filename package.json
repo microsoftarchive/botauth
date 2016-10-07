@@ -1,6 +1,6 @@
 {
   "name": "botauth",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "OAuth Middleware for BotFramework",
   "main": "./lib/",
   "scripts": {
