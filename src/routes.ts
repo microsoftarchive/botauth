@@ -35,10 +35,12 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
                 if(!findErr) {
                     if(authorization) {
                         //save authorization for next middleware to use
-                        Object.assign((<any>req).locals, { authorization : authorization });
+                        console.log("authorization found: %j", authorization);
+                        (<any>req).locals = Object.assign({}, (<any>req).locals, { authorization : authorization });
                         next();
                     } else {
                         console.log("authorization not found");
+                        (<any>req).locals = Object.assign({}, (<any>req).locals, { authorization : authorization });
                         next();
                     }
                 } else {
@@ -51,10 +53,16 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
         (req : restify.Request, res: restify.Response, next: restify.Next) => {
             let providerId : string = req.params.providerId;
             console.log(`[botauth/${providerId}/callback]`);
+            
+            if(!(<any>req).locals.authorization || !(<any>req).locals.authorization.address) {
+                res.send(403, "Authorization token is invalid or has expired.");
+                return;
+            }
 
             let addr : builder.IAddress = (<any>req).locals.authorization.address;
+
             let botStorage : builder.IBotStorage = bot.get("storage");
-            let botContext : builder.IBotStorageContext = {address: addr, userId : addr.user.id, conversationId : addr.conversation.id, persistUserData : true, persistConversationData: true};
+            let botContext : builder.IBotStorageContext = { address: addr, userId : addr.user.id, conversationId : addr.conversation.id, persistUserData : true, persistConversationData: true };
             botStorage.getData(botContext, (getErr : Error, data : builder.IBotStorageData) => {
                 if(!getErr) {
                     console.log("\n[rest:/botauth/auth(getData)]\n%j", data);
