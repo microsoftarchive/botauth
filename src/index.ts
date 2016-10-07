@@ -20,6 +20,9 @@ export interface IBotAuthProvider {
     args : any
 }
 
+export interface IAuthenticateOptions {
+}
+
 export class Authenticator {
 
     private _options : IBotAuthOptions;
@@ -85,9 +88,9 @@ export class Authenticator {
     /**
      * Returns a DialogWaterfallStep which provides authentication for a specific dialog 
      * @param {String} providerId 
-     * @return {IDialogWaterfallStep} 
+     * @return {IDialogWaterfallStep[]} 
      */
-    public authenticate(providerId : string, steps : builder.IDialogWaterfallStep[]) : builder.IDialogWaterfallStep[] {
+    public authenticate(providerId : string, options : IAuthenticateOptions) : builder.IDialogWaterfallStep[] {
         let authSteps : builder.IDialogWaterfallStep[] = [
             (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
                 session.beginDialog(library.name, { 
@@ -107,15 +110,23 @@ export class Authenticator {
                 }
             }
         ];
-
-        if(steps) {
-            steps.forEach((step) => { authSteps.push(step); });
-        }
         
         return authSteps;
     }
 
-
+    /**
+     * Gets user profile from session state
+     * @param {Session} bot session
+     * @param {string} botauth provider id of the profile
+     * @return {IUser} user profile if it exists; otherwise null
+     **/
+    public profile(session : builder.Session, providerId : string) : IUser {
+        if(session && session.userData && session.userData.botauth && session.userData.botauth.tokens && session.userData.botauth.tokens.hasOwnProperty(providerId)) {
+            return session.userData.botauth.tokens[providerId];
+        } else {
+            return null;
+        }
+    }
 
     private callbackUrl(providerName : string) {
         return `${this._options.baseUrl}/${this._options.basePath}/${providerName}/callback`;
