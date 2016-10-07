@@ -31,6 +31,10 @@ export class Authenticator {
     private _store : IAuthorizationStore;
 
     public constructor(server : restify.Server, bot : builder.UniversalBot, store : IAuthorizationStore, options : IBotAuthOptions) {
+        if(!bot || !server || !store) { 
+            throw new Error("Autenticator constructor failed because required parameters were null/undefined");
+        }
+
         this._bot = bot;
         this._server = server;
         this._store = store;
@@ -75,8 +79,11 @@ export class Authenticator {
         }, options.args);
 
         let s : passport.Strategy = new (<any>options.strategy)(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
+            profile = profile || {};
+            profile.id = profile.id || crypto.randomBytes(32).toString('hex');   
             profile.accessToken = accessToken;
             profile.refreshToken = refreshToken;
+            
             return done(null, profile);
         });
 
