@@ -108,7 +108,9 @@ export class Authenticator {
             }
         ];
 
-        steps.forEach((step) => { authSteps.push(step); });
+        if(steps) {
+            steps.forEach((step) => { authSteps.push(step); });
+        }
         
         return authSteps;
     }
