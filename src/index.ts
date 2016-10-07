@@ -87,24 +87,32 @@ export class Authenticator {
      * @param {String} providerId 
      * @return {IDialogWaterfallStep} 
      */
-    public authenticate(providerId : string) : builder.IDialogWaterfallStep {
-        return (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
-            if(args) {
-                if(args.resumed === builder.ResumeReason.completed) {
-                    skip();
-                    return;
-                } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.forward || args.resumed === builder.ResumeReason.notCompleted) {
-                    session.endConversation("auth failed, ending conversation");
-                    return;
-                } 
-            } else {
+    public authenticate(providerId : string, steps : builder.IDialogWaterfallStep[]) : builder.IDialogWaterfallStep[] {
+        let authSteps : builder.IDialogWaterfallStep[] = [
+            (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
                 session.beginDialog(library.name, { 
                     providerId : providerId, 
                     authUrl : this.authUrl(providerId) 
                 });
+            },
+            (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
+                if(args) {
+                    if(args.resumed === builder.ResumeReason.completed) {
+                        skip();
+                        return;
+                    } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.forward || args.resumed === builder.ResumeReason.notCompleted) {
+                        session.endConversation("auth failed, ending conversation");
+                        return;
+                    } 
+                }
             }
-        };
+        ];
+
+        steps.forEach((step) => { authSteps.push(step); });
+        
+        return authSteps;
     }
+
 
 
     private callbackUrl(providerName : string) {
