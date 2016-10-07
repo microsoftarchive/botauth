@@ -1,3 +1,4 @@
+
 # Overview 
 *botauth* is authentication middleware for bots built using the [botframework](http://botframework.com) and nodejs. *botauth* is leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party oauth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0. 
 
@@ -43,3 +44,11 @@ Use the *authenticate* method to make sure that the user has authenticated with 
     	session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
  		}
 	]));
+
+# Storage Provider
+The *botauth* framework needs a place to store state, and instead of embedding this storage mechanism within *botauth*, the framework requires the developer to provide a object which stores *botauth* state in whatever way you want.  For convenience an implementation is provided in the [authbot-mongoose](https://github.com/mattdot/authbot-mongoose) project which allows you to use mongodb or documentdb without having to write your own storage provider.
+
+	const Storage = require('authbot-mongoose');
+
+	// Create the storage connector for BotAuth
+	var storage = new Storage(DB_URI);
