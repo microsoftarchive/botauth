@@ -74,6 +74,8 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
                     if(!data.userData.botauth) data.userData.botauth = {};
                     data.userData.botauth.tokens = Object.assign({}, data.userData.botauth.tokens, (<any>{})[providerId] = (<any>req).user);
 
+                    console.log("\n%j\n", data.userData);
+
                     botStorage.saveData(botContext, data, function(saveError : any) {
                         if(saveError) {
                             console.log("error saving data %j", saveError); 
