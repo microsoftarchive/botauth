@@ -5,6 +5,11 @@
 *botauth* is authentication middleware for bots built using the [botframework](http://botframework.com) and nodejs. *botauth* is leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party oauth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0. 
 
 # Setup
+*botauth* is available as an npm package 
+
+	npm install --save botauth
+	
+# Getting Started
 	// Setup Restify Server
 	var server = restify.createServer();
 	server.use(restify.bodyParser());
@@ -12,8 +17,8 @@
 	
 	// Create chat connector with bot's Microsoft app identity
 	var connector = new builder.ChatConnector({
-      appId: MICROSOFT_APP_ID,
-      appPassword: MICROSOFT_APP_PASSWORD
+      		appId: MICROSOFT_APP_ID,
+      		appPassword: MICROSOFT_APP_PASSWORD
 	});
 
 	// Create bot builder client and connect it to restify server
@@ -39,11 +44,11 @@
 	});
 
 # Authenticated Dialog
-Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`
+Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
 
-	bot.dialog('/dropbox', auth.authenticate("dropbox", [ 
-  	function(session, results) {
-    	session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
+	bot.dialog('/dropbox', auth.authenticate("dropbox").concat([ 
+  		function(session, results) {
+    			session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
  		}
 	]));
 
