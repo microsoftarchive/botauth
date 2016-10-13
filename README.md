@@ -1,3 +1,4 @@
+
 # Overview 
 
 	botauth is still pre-release and under active development. APIs may change until we get to v1.0.
@@ -42,6 +43,8 @@
 	server.listen(PORT, function () {
 	   console.log('%s listening to %s', server.name, server.url); 
 	});
+
+More sample code is available at https://github.com/mattdot/botauth-sample/
 
 # Authenticated Dialog
 Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
