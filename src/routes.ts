@@ -97,7 +97,7 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
                             text : ""
                         } as builder.IMessage);
 
-                        res.send(addr);
+                        res.send("You successfully authenticated.  Close this browser and return to our chat.");
                     });
                 }
             });
