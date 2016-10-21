@@ -6,9 +6,15 @@ import passport = require('passport');
 import restify = require('restify');
 
 import * as routes from "./routes";
-import * as library from "./library";
-import { IAuthorizationStore, IAuthorization, IUser, IUserId } from "./store";
-export { IAuthorization, IAuthorizationStore, IUser, IUserId };
+import { ICredential, ICredentialStorage, IUser } from "./storage";
+export { ICredential, ICredentialStorage, IUser };
+
+import { AuthDialog, IAuthDialogOptions } from "./dialogs";
+export { AuthDialog, IAuthDialogOptions };
+
+const DIALOG_LIBRARY : string = "botauth";
+const DIALOG_ID : string = "auth";
+const DIALOG_FULLNAME : string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
 
 export interface IBotAuthOptions {
     baseUrl : string,
@@ -21,48 +27,47 @@ export interface IBotAuthProvider {
 }
 
 export interface IAuthenticateOptions {
+
 }
 
+/**
+ * 
+ */
 export class Authenticator {
 
-    private _options : IBotAuthOptions;
-    private _bot : builder.UniversalBot;
-    private _server : restify.Server;
-    private _store : IAuthorizationStore;
-
-    public constructor(server : restify.Server, bot : builder.UniversalBot, store : IAuthorizationStore, options : IBotAuthOptions) {
+    public constructor(private server : restify.Server, private bot : builder.UniversalBot, private store : ICredentialStorage, private options : IBotAuthOptions) {
         if(!bot || !server || !store) { 
             throw new Error("Autenticator constructor failed because required parameters were null/undefined");
         }
 
-        this._bot = bot;
-        this._server = server;
-        this._store = store;
-
         //override default options with options passed by caller
-        this._options = Object.assign( { basePath : "botauth" }, options);
+        this.options = Object.assign( { basePath : "botauth" }, options);
 
         //configure restify/express to use passport
-        this._server.use(<any>passport.initialize());
+        this.server.use(<any>passport.initialize());
 
         //add routes for handling oauth redirect and callbacks
-        routes.add(this._server, this._bot, this._store);
+        routes.add(this.server, this.bot, this.store);
 
         //add auth dialogs to a library
-        this._bot.library(library.build(this._store));
+        let lib = new builder.Library(DIALOG_LIBRARY);
+        lib.dialog(DIALOG_ID, new AuthDialog(this.store));
+        this.bot.library(lib);
 
         //passportjs serialize user to data store so that we can later look them up from cookie
         passport.serializeUser((user, done) => {
-            store.saveUser(user, (err : Error, id: IUserId) => {
-                done(null, id);   
-            });
+            //store.saveUser(user, (err : Error, id: IUserId) => {
+                //todo: encrypt
+                done(null, user);   
+            //});
         });
 
         //passportjs retrieve user data from data store when user has userId in cookie
         passport.deserializeUser((userId, done) => {
-            store.findUser(userId, (err : Error, user : IUser) => {
-                return done(null, user);
-            });
+            //store.findUser(userId, (err : Error, user : IUser) => {
+                //todo: decrypt
+                return done(null, userId);
+            //});
         });
     }
 
@@ -74,7 +79,7 @@ export class Authenticator {
      * @return {BotAuth} this
      */
     public provider(name : string, options : IBotAuthProvider) : Authenticator { 
-        let args = Object.assign({ 
+        let args = Object.assign({
             callbackURL : this.callbackUrl(name)
         }, options.args);
 
@@ -100,9 +105,9 @@ export class Authenticator {
     public authenticate(providerId : string, options : IAuthenticateOptions) : builder.IDialogWaterfallStep[] {
         let authSteps : builder.IDialogWaterfallStep[] = [
             (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
-                session.beginDialog(library.name, { 
+                session.beginDialog("botauth:auth", {
                     providerId : providerId, 
-                    authUrl : this.authUrl(providerId) 
+                    buttonUrl : this.authUrl(providerId) 
                 });
             },
             (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
@@ -136,10 +141,10 @@ export class Authenticator {
     }
 
     private callbackUrl(providerName : string) {
-        return `${this._options.baseUrl}/${this._options.basePath}/${providerName}/callback`;
+        return `${this.options.baseUrl}/${this.options.basePath}/${providerName}/callback`;
     }
 
     private authUrl(providerName : string) {
-        return `${this._options.baseUrl}/${this._options.basePath}/${providerName}`;
+        return `${this.options.baseUrl}/${this.options.basePath}/${providerName}`;
     }
 }

@@ -1,12 +1,11 @@
-/// <reference path="store.ts" />
 import restify = require("restify");
 import builder = require("botbuilder");
 import passport = require("passport");
 import crypto = require("crypto");
 
-import { IAuthorizationStore, IAuthorization } from "./store";
+import { ICredentialStorage, ICredential, IUser } from "./storage";
 
-export function add(server : restify.Server, bot : builder.UniversalBot, store : IAuthorizationStore) {
+export function add(server : restify.Server, bot : builder.UniversalBot, store : ICredentialStorage) {
     /**
      * Oauth redirect route
      */
@@ -14,7 +13,10 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
         (req : restify.Request, res: restify.Response, next : restify.Next) => {
             let providerId : string = req.params.providerId;
             let state : string = (<any>req.query).state;
+            
             //todo: scrub provider
+
+            //this redirects to the authentication provider
             return passport.authenticate(providerId, { state : state })(<any>req, <any>res, <any>next);
         }
     );
@@ -30,77 +32,81 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
         },
         //read the state query param and lookup stored authorization information
         (req : restify.Request, res: restify.Response, next : restify.Next) => {
-            let state : string = (<any>req.query).state;
-            store.findAuthorization(state, (findErr : Error, authorization : IAuthorization) => {
-                if(!findErr) {
-                    if(authorization) {
-                        //save authorization for next middleware to use
-                        console.log("authorization found: %j", authorization);
-                        (<any>req).locals = Object.assign({}, (<any>req).locals, { authorization : authorization });
-                        next();
-                    } else {
-                        console.log("authorization not found");
-                        (<any>req).locals = Object.assign({}, (<any>req).locals, { authorization : authorization });
-                        next();
-                    }
+            let cred : ICredential = {
+                _id : crypto.randomBytes(32).toString('hex'),
+                conversation : (<any>req.query).state,
+                authToken : (<any>req).user.authToken,
+                refreshToken : (<any>req).user.refreshToken
+            };
+
+            store.saveCredential(cred, (err, credential) => {
+                if(err) {
+                    res.send(403, "saving credential failed");       
                 } else {
-                    //did not find authorization.  may be expired, reused, or never there
-                    next(findErr);
+                    res.send(`To complete your authentication, put '${ cred._id.substring(cred._id.length-6) }' in our chat.`);
                 }
             });
-        },
-        // save tokens to bot storage data
-        (req : restify.Request, res: restify.Response, next: restify.Next) => {
-            let providerId : string = req.params.providerId;
-            console.log(`[botauth/${providerId}/callback]`);
-            
-            if(!(<any>req).locals.authorization || !(<any>req).locals.authorization.address) {
-                res.send(403, "Authorization token is invalid or has expired.");
-                return;
-            }
-
-            let addr : builder.IAddress = (<any>req).locals.authorization.address;
 
             let botStorage : builder.IBotStorage = bot.get("storage");
-            let botContext : builder.IBotStorageContext = { address: addr, userId : addr.user.id, conversationId : addr.conversation.id, persistUserData : true, persistConversationData: true };
-            botStorage.getData(botContext, (getErr : Error, data : builder.IBotStorageData) => {
-                console.log("\n[rest:/botauth/auth(getData)]\n%j\n%j", getErr, data);
-                if(!getErr) {
-                    //validate authentication request
-                    // var cs = data.privateConversationData["BotBuilder.Data.SessionState"].callstack;
-                    // var csi = cs.findIndex((el : any, ind : number, arr : any) => { return el.id === "botauth:auth";});        
-                    //cs[csi].state["BotAuth.Token"] = encodedAddr;
-
-                    let providerToken : any = {}; 
-                    providerToken[providerId] = (<any>req).user;
-
-                    if(!data.userData.botauth) data.userData.botauth = {};
-                    data.userData.botauth.tokens = Object.assign({}, data.userData.botauth.tokens, providerToken);
-
-                    console.log("**TOKENS**\n%j\n", data.userData);
-
-                    botStorage.saveData(botContext, data, function(saveError : any) {
-                        if(saveError) {
-                            console.log("error saving data %j", saveError); 
-                        } else { 
-                            console.log("success saving data");
-                        }
-
-                        //activate our auth dialog by sending a message into the bot pipeline
-                        bot.receive({
-                            type : "message",
-                            agent: "botbuilder",
-                            source : addr.channelId,
-                            sourceEvent : {},
-                            address : addr,
-                            user : addr.user,
-                            text : ""
-                        } as builder.IMessage);
-
-                        res.send("You successfully authenticated.  Close this browser and return to our chat.");
-                    });
-                }
-            });
+            let botContext : builder.IBotStorageContext = { persistConversationData : true, persistUserData : false };
+            let botData : builder.IBotStorageData = {};
+            botData.conversationData.botauth = {};
+            botData.conversationData.botauth[cred._id.slice(-6)] = cred;
+            botStorage.saveData(botContext, botData, (err) => {});
         }
+
+        // save tokens to bot storage data
+        // (req : restify.Request, res: restify.Response, next: restify.Next) => {
+        //     let providerId : string = req.params.providerId;
+        //     console.log(`[botauth/${providerId}/callback]`);
+            
+        //     if(!(<any>req).locals.authorization || !(<any>req).locals.authorization.address) {
+        //         res.send(403, "Authorization token is invalid or has expired.");
+        //         return;
+        //     }
+
+        //     let addr : builder.IAddress = (<any>req).locals.authorization.address;
+
+        //     let botStorage : builder.IBotStorage = bot.get("storage");
+        //     let botContext : builder.IBotStorageContext = { address: addr, userId : addr.user.id, conversationId : addr.conversation.id, persistUserData : true, persistConversationData: true };
+        //     botStorage.getData(botContext, (getErr : Error, data : builder.IBotStorageData) => {
+        //         console.log("\n[rest:/botauth/auth(getData)]\n%j\n%j", getErr, data);
+        //         if(!getErr) {
+        //             //validate authentication request
+        //             // var cs = data.privateConversationData["BotBuilder.Data.SessionState"].callstack;
+        //             // var csi = cs.findIndex((el : any, ind : number, arr : any) => { return el.id === "botauth:auth";});        
+        //             //cs[csi].state["BotAuth.Token"] = encodedAddr;
+
+        //             let providerToken : any = {}; 
+        //             providerToken[providerId] = (<any>req).user;
+
+        //             if(!data.userData.botauth) data.userData.botauth = {};
+        //             data.userData.botauth.tokens = Object.assign({}, data.userData.botauth.tokens, providerToken);
+
+        //             console.log("**TOKENS**\n%j\n", data.userData);
+
+        //             botStorage.saveData(botContext, data, function(saveError : any) {
+        //                 if(saveError) {
+        //                     console.log("error saving data %j", saveError); 
+        //                 } else { 
+        //                     console.log("success saving data");
+        //                 }
+
+        //                 //activate our auth dialog by sending a message into the bot pipeline
+        //                 bot.receive({
+        //                     type : "message",
+        //                     agent: "botbuilder",
+        //                     source : addr.channelId,
+        //                     sourceEvent : {},
+        //                     address : addr,
+        //                     user : addr.user,
+        //                     text : ""
+        //                 } as builder.IMessage);
+
+        //                 res.send("You successfully authenticated.  Close this browser and return to our chat.");
+        //             });
+        //         }
+        //     });
+        // }
     );
 }
