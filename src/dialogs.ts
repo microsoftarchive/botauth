@@ -80,19 +80,27 @@ export class AuthDialog extends builder.Dialog {
     public replyReceived(session : builder.Session) : void {
 
         let convoId : string = session.conversationData.authContext;
+        let userEntered : string = session.message.text;
+
+        console.log(userEntered, session.conversationData);
 
         //lookup magic code
-        this.store.findCredential(session.message.text, convoId, (err : Error, cred : ICredential) => {
-            let magicCode : string = cred._id.slice(-6);
+        this.store.findCredential(userEntered, convoId, (err : Error, cred : ICredential) => {
             if(err) {
                 //end the dialog because of an error
                 session.endDialogWithResult({ response : false, resumed : builder.ResumeReason.notCompleted, error: err });
-            } else if(cred && session.message.text === magicCode && convoId === cred.conversation) {
-                //authentication successful, return result to calling  
-                session.endDialogWithResult({ response : true, resumed : builder.ResumeReason.completed });
+            } else if(cred) {
+                console.log(cred);
+                let magicCode : string = cred._id.slice(-6);
+                if(session.message.text === magicCode && convoId === cred.conversation) {
+                    //authentication successful, return result to calling  
+                    session.endDialogWithResult({ response : true, resumed : builder.ResumeReason.completed });
+                } else {
+                    //magic number is wrong
+                    session.send(this.options.unauthorizedText);
+                }
             } else {
-                //magic number is wrong
-                session.send(this.options.unauthorizedText);
+                session.endDialogWithResult({response:false, resumed: builder.ResumeReason.canceled});
             }
         }); 
     }

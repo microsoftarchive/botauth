@@ -5,7 +5,7 @@ import builder = require('botbuilder');
 import passport = require('passport');
 import restify = require('restify');
 
-import * as routes from "./routes";
+//import * as routes from "./routes";
 import { ICredential, ICredentialStorage, IUser } from "./storage";
 export { ICredential, ICredentialStorage, IUser };
 
@@ -33,8 +33,11 @@ export interface IAuthenticateOptions {
 /**
  * 
  */
-export class Authenticator {
+export class BotAuthenticator {
 
+    /**
+     * @public
+     */
     public constructor(private server : restify.Server, private bot : builder.UniversalBot, private store : ICredentialStorage, private options : IBotAuthOptions) {
         if(!bot || !server || !store) { 
             throw new Error("Autenticator constructor failed because required parameters were null/undefined");
@@ -47,7 +50,8 @@ export class Authenticator {
         this.server.use(<any>passport.initialize());
 
         //add routes for handling oauth redirect and callbacks
-        routes.add(this.server, this.bot, this.store);
+        this.server.get(`/${this.options.basePath}/:providerId`, this.persistContext.bind(this), this.passport_redirect);
+        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback, this.restoreContext.bind(this), this.credential_callback.bind(this));
 
         //add auth dialogs to a library
         let lib = new builder.Library(DIALOG_LIBRARY);
@@ -78,7 +82,7 @@ export class Authenticator {
      * @param {IBotAuthProviderOptions} options
      * @return {BotAuth} this
      */
-    public provider(name : string, options : IBotAuthProvider) : Authenticator { 
+    public provider(name : string, options : IBotAuthProvider) : BotAuthenticator { 
         let args = Object.assign({
             callbackURL : this.callbackUrl(name)
         }, options.args);
@@ -146,5 +150,67 @@ export class Authenticator {
 
     private authUrl(providerName : string) {
         return `${this.options.baseUrl}/${this.options.basePath}/${providerName}`;
+    }
+
+    /**
+     * use the passport strategy to redirect to the authentication provider
+     */
+    private passport_redirect(req : restify.Request, res: restify.Response, next : restify.Next) {
+        let providerId : string = req.params.providerId;
+        let state : string = (<any>req.query).state;
+
+        //this redirects to the authentication provider
+        return passport.authenticate(providerId, { state : state, session : false })(<any>req, <any>res, <any>next);
+    }
+
+    /**
+     * send callback through passport to get access/refresh tokens
+     */
+    private passport_callback(req : restify.Request, res: restify.Response, next : restify.RequestHandler) : any {
+        let providerId : string = req.params.providerId;
+        return passport.authenticate(providerId) (<any> req, <any> res, <any> next);
+    }
+
+    /**
+     * save user context before redirecting
+     */
+    private persistContext(req : restify.Request, res: restify.Response, next : restify.RequestHandler) : any {
+        return (<any>next)();
+    }
+
+    /**
+     * restore user bot context after callback
+     */
+    private restoreContext(req : restify.Request, res: restify.Response, next : restify.RequestHandler) : any {
+        return (<any>next)();
+    }
+
+    /**
+     *  read the state query param and lookup stored authorization information
+     */
+    private credential_callback(req : restify.Request, res: restify.Response, next : restify.Next) {
+        let cred : ICredential = {
+            _id : crypto.randomBytes(32).toString('hex'),
+            conversation : (<any>req.query).state,
+            authToken : (<any>req).user.authToken,
+            refreshToken : (<any>req).user.refreshToken
+        };
+
+        this.store.saveCredential(cred, (err, credential) => {
+            if(err) {
+                res.send(403, "saving credential failed");
+                res.end();       
+            } else {
+                //todo: make this a real html page
+                res.end(`You're almost done. To complete your authentication, put '${ cred._id.slice(-6) }' in our chat.`);
+            }
+        });
+
+        // let botStorage : builder.IBotStorage = bot.get("storage");
+        // let botContext : builder.IBotStorageContext = { persistConversationData : true, persistUserData : false };
+        // let botData : builder.IBotStorageData = {};
+        // botData.conversationData.botauth = {};
+        // botData.conversationData.botauth[cred._id.slice(-6)] = cred;
+        // botStorage.saveData(botContext, botData, (err) => {});
     }
 }

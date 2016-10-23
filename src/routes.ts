@@ -13,11 +13,9 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
         (req : restify.Request, res: restify.Response, next : restify.Next) => {
             let providerId : string = req.params.providerId;
             let state : string = (<any>req.query).state;
-            
-            //todo: scrub provider
 
             //this redirects to the authentication provider
-            return passport.authenticate(providerId, { state : state })(<any>req, <any>res, <any>next);
+            return passport.authenticate(providerId, { state : state, session : false })(<any>req, <any>res, <any>next);
         }
     );
 
@@ -43,7 +41,8 @@ export function add(server : restify.Server, bot : builder.UniversalBot, store :
                 if(err) {
                     res.send(403, "saving credential failed");       
                 } else {
-                    res.send(`To complete your authentication, put '${ cred._id.substring(cred._id.length-6) }' in our chat.`);
+                    //todo: make this a real html page
+                    res.send(`You're almost done. To complete your authentication, put '${ cred._id.slice(-6) }' in our chat.`);
                 }
             });
 
