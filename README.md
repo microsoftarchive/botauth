@@ -26,17 +26,18 @@ var connector = new builder.ChatConnector({
 var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
 
-// Create the storage connector for BotAuth
-var storage = new Storage(DB_URI);
-
 // Initialize with the strategies we want to use
 var auth = new botauth.Authenticator(server, bot, storage, { baseUrl : "https://" + WEBSITE_HOSTNAME })
-.provider("dropbox", { 
-strategy : DropboxOAuth2Strategy,
-args : {
-    clientID : DROPBOX_APP_ID,
-    clientSecret : DROPBOX_APP_SECRET
-}
+.provider("dropbox", function(options) { 
+	return new DropboxOAuth2Strategy({
+    		clientID : DROPBOX_APP_ID,
+    		clientSecret : DROPBOX_APP_SECRET,
+		callbackURL : options.callbackURL
+	}, function(accessToken, refreshToken, profile, done) {
+		profile.accessToken = accessToken;
+		profile.refreshToken = refreshToken;
+		done(null, profile);
+	});
 });
 
 //start the server
@@ -50,21 +51,10 @@ More sample code is available at https://github.com/mattdot/botauth-sample/
 Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
 
 ```javascript
-bot.dialog('/dropbox', auth.authenticate("dropbox").concat([ 
+bot.dialog('/dropbox', [].concat(
+	auth.authenticate("dropbox"),
 	function(session, results) {
 		session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
 	}
-]));
-```
-# Storage Provider
-The *botauth* framework needs a place to store state, and instead of embedding this storage mechanism within *botauth*, the framework requires the developer to provide a object which stores *botauth* state in whatever way you want.  For convenience an implementation is provided in the [authbot-mongoose](https://github.com/mattdot/authbot-mongoose) project which allows you to use mongodb or documentdb without having to write your own storage provider.
-```bash
-npm install --save authbot-mongoose
-```
-The storage provider accepts a mongo style uri connection string. `mongodb://user:password@ds123456.mlab.com:46345/mydb`
-```javascript
-const Storage = require('authbot-mongoose');
-
-// Create the storage connector for BotAuth
-var storage = new Storage(DB_URI);
+));
 ```
