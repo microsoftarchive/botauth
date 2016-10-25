@@ -1,7 +1,7 @@
 import builder = require("botbuilder");
 import crypto = require("crypto");
 
-//import { ICredentialStorage, ICredential } from "./storage"
+import { IChallengeResponse } from "./interfaces";
 
 export interface IAuthDialogOptions {
     providerId : string,
@@ -79,41 +79,64 @@ export class AuthDialog extends builder.Dialog {
     public replyReceived(session : builder.Session) : void {
         let challenge : string = session.conversationData.challenge;
         let userEntered : string = session.message.text;
+        let response : IChallengeResponse;
 
-        let user : any;
+        let clearResponse = (mk : string) => {
+            if(mk && session.conversationData.botauth && session.conversationData.responses) {
+                //clear the challenge information
+                delete session.conversationData.botauth.responses[mk];
+                session.save();
+            }
+        };
 
-        try {
-            let decipher = crypto.createDecipher("aes192", userEntered + this.options.secret);
-            let json = decipher.update(session.conversationData.botauth.response, 'base64', 'utf8') + decipher.final('utf8');
-            user = JSON.parse(json);            
-        } catch (error) {
-            //decryption failure means that the user provided the wrong magic number
-            console.error(error);
-            user = null;
-        }
-
-        if(!user) {
-            //clear the challenge information
-            session.conversationData.botauth.response = null;
-            session.save();
+        //helper function for errors
+        let wrongCode = (mk : string) => {
+            clearResponse(mk);
 
             //tell the user that the magic code was wrong and to try again
             session.send(this.options.unauthorizedText);
-            return;
-        } else {
-            //clear the challenge information
-            session.conversationData.botauth.response = null;
+        };
 
-            //save user profile to userData
-            session.userData.botauth = session.userData.botauth || {};
-            session.userData.botauth.user = session.userData.botauth.user || {};
-            session.userData.botauth.user[user.provider] = user;
-            session.save();
+        let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
+        if(!session.conversationData.botauth || !session.conversationData.botauth.responses || !session.conversationData.botauth.responses.hasOwnProperty(magicKey)) {
+            //wrong magic code provided.
+            return wrongCode(magicKey);
+        } 
 
-            console.log(session.userData.botauth.user);
+        let encryptedResponse = session.conversationData.botauth.responses[magicKey];
+        try {
+            //response data is encrypted with magic number, so decrypt it.
+            let decipher = crypto.createDecipher("aes192", userEntered + this.options.secret);
+            let json = decipher.update(encryptedResponse, 'base64', 'utf8') + decipher.final('utf8');
 
-            //return success to the parent dialog, and include the user.
-            session.endDialogWithResult({ response : user, resumed : builder.ResumeReason.completed });
+            //decrypted plain-text is json, so parse it
+            response = JSON.parse(json);            
+        } catch (error) {
+            //decryption failure means that the user provided the wrong magic number
+            console.error(error);
+            return wrongCode(magicKey);
         }
+
+        //successfully decrypted, but no response or user. should not happen
+        if(!response || !response.user) {
+            return wrongCode(magicKey);
+        }
+        
+        //success!!
+
+        //clear the challenge/response data
+        clearResponse(magicKey);
+
+        let cipher = crypto.createCipher("aes192", this.options.secret);
+        let encryptedUser = cipher.update(JSON.stringify(response.user), 'utf8', 'base64') + cipher.final('base64');
+
+        //save user profile to userData
+        session.userData.botauth = session.userData.botauth || {};
+        session.userData.botauth.user = session.userData.botauth.user || {};
+        session.userData.botauth.user[response.providerId] = encryptedUser;
+        session.save();
+
+        //return success to the parent dialog, and include the user.
+        session.endDialogWithResult({ response : response.user, resumed : builder.ResumeReason.completed });
     }
 }

@@ -5,14 +5,14 @@ import builder = require('botbuilder');
 import passport = require('passport');
 import restify = require('restify');
 
-import {  IUser } from "./storage";
-export {  IUser };
-
 import { AuthDialog, IAuthDialogOptions } from "./dialogs";
 export { AuthDialog, IAuthDialogOptions };
 
 import { IResumptionProvider, CookieResumption } from "./resumption";
 export { IResumptionProvider, CookieResumption };
+
+import { IChallengeResponse, IUser } from "./interfaces";
+export { IChallengeResponse, IUser };
 
 const DIALOG_LIBRARY : string = "botauth";
 const DIALOG_ID : string = "auth";
@@ -22,7 +22,8 @@ export interface IBotAuthenticatorOptions {
     baseUrl : string,
     basePath : string,
     secret : string,
-    resumption : IResumptionProvider
+    resumption : IResumptionProvider,
+    successRedirect? : string
 }
 
 const defaultOptions : IBotAuthenticatorOptions = {
@@ -131,7 +132,8 @@ export class BotAuthenticator {
                     if(args.resumed === builder.ResumeReason.completed || args.resumed === builder.ResumeReason.forward) {
                         skip(<any>{ response: args.response });
                         return;
-                    } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.forward || args.resumed === builder.ResumeReason.notCompleted) {
+                    } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.notCompleted) {
+                        //todo: should we end the conversation or just the dialog on auth failure?
                         session.endConversation("auth failed, ending conversation");
                         return;
                     } 
@@ -152,8 +154,13 @@ export class BotAuthenticator {
         //todo: add setter
 
         if(session && session.userData && session.userData.botauth && session.userData.botauth.user && session.userData.botauth.user.hasOwnProperty(providerId)) {
-            //todo: decrypt
-            return session.userData.botauth.user[providerId];
+            let encryptedProfile : string = session.userData.botauth.user[providerId];
+            
+            //decrypt
+            let decipher = crypto.createDecipher("aes192", this.options.secret);
+            let json = decipher.update(encryptedProfile, 'base64', 'utf8') + decipher.final('utf8');
+            
+            return JSON.parse(json);
         } else {
             return null;
         }
@@ -196,6 +203,8 @@ export class BotAuthenticator {
      *  read the state query param and lookup stored authorization information
      */
     private credential_callback(req : restify.Request, res: restify.Response, next : restify.Next) {
+        let providerId : string = req.params.providerId;
+
         //decode the resumption token into an address
         let addr : builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString());;
         if(!addr) {
@@ -208,9 +217,16 @@ export class BotAuthenticator {
         //generate magic number
         let magic : string = crypto.randomBytes(3).toString('hex');
 
-        //encrypt user data with the magic number (and secret) so that only user with magic number can decrypt later
+        //package up the data we need for the challenge response
+        let response : IChallengeResponse = {
+            providerId : providerId,
+            user : (<any>req).user,
+            timestamp : new Date()
+        };
+
+        //encrypt response data with the magic number (and secret) so that only user with magic number can decrypt later
         let cipher = crypto.createCipher("aes192", magic + this.options.secret);
-        let userData = cipher.update(JSON.stringify((<any>req).user), 'utf8', 'base64') + cipher.final('base64');
+        let encryptedResponse = cipher.update(JSON.stringify(response), 'utf8', 'base64') + cipher.final('base64');
 
         //temporarily store this in conversationData until user enters the magic code
         let botStorage : builder.IBotStorage = this.bot.get("storage");
@@ -224,22 +240,25 @@ export class BotAuthenticator {
                 return;
             }
             
-            //update conversation data with the current credentials
+            //save response data to bot conversation data 
+            let magicKey = crypto.createHmac("sha256", this.options.secret).update(magic).digest("hex");
             data.conversationData.botauth = data.conversationData.botauth || {};
-            data.conversationData.botauth.response = userData;
-
-            //todo: allow more that one user to respond to a challenge
-            //data.conversationData.botauth.responses = data.conversationData.botauth.responses || [];
-            //data.conversationData.botauth.responses.push(userData);
+            data.conversationData.botauth.responses = data.conversationData.botauth.responses || {};
+            data.conversationData.botauth.responses[magicKey] = encryptedResponse;
 
             //save updated data back to bot storage
             botStorage.saveData(botContext, data, (err) => {
                 if(err) {
                     res.send(403, "saving credential failed");
-                    res.end();    
+                    res.end();
                 } else {
-                    //show the user the magic number they need to enter in the chat window
-                    res.end(`You're almost done. To complete your authentication, put '${ magic }' in our chat.`);
+                    if(this.options.successRedirect) {
+                        res.send("302", "redirecting...", { "Location" : `${this.options.successRedirect}#${encodeURIComponent(magic)}`});
+                        res.end();
+                    } else {
+                        //show the user the magic number they need to enter in the chat window
+                        res.end(`You're almost done. To complete your authentication, put '${ magic }' in our chat.`);
+                    }
                 }
             });
         });

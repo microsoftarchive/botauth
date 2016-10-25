@@ -12,9 +12,15 @@ export interface IResumptionProvider {
  * between redirect and callback of authentication.
  */
 export class CookieResumption implements IResumptionProvider {
+    /**
+     * 
+     */
     constructor(private maxAge : number, private secret : string) {
     }
 
+    /**
+     * 
+     */
     public persistHandler() : (req : any, res : any, next : any) => void {
         let maxAge = Math.floor(this.maxAge);
         let secret = this.secret;
@@ -33,11 +39,14 @@ export class CookieResumption implements IResumptionProvider {
         };
     }
 
+    /**
+     * 
+     */
     public restoreHandler() : (req : any, res : any, next : any) => void {
         let secret = this.secret;
 
+        //return implementation of the handler
         return (req, res, next) => {
-            console.log(req.headers.cookie);
             let cookies : any = cookie.parse(req.headers.cookie || '');
 
             if(cookies && cookies.botauth) {
