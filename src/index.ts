@@ -18,23 +18,26 @@ const DIALOG_LIBRARY : string = "botauth";
 const DIALOG_ID : string = "auth";
 const DIALOG_FULLNAME : string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
 
-export interface IBotAuthOptions {
+export interface IBotAuthenticatorOptions {
     baseUrl : string,
     basePath : string,
     secret : string,
     resumption : IResumptionProvider
 }
 
-const defaultOptions : IBotAuthOptions = {
+const defaultOptions : IBotAuthenticatorOptions = {
     basePath : "botauth",
     resumption : null,
     secret : null,
     baseUrl : null
 };
 
-export interface IBotAuthProvider {
-    strategy : passport.Strategy,
-    args : any
+export interface IStrategyOptions {
+    callbackURL : string
+}
+
+export interface IStrategy {
+    authenticate(req : any, options : any) : void;
 }
 
 export interface IAuthenticateOptions {
@@ -42,14 +45,16 @@ export interface IAuthenticateOptions {
 }
 
 /**
- * 
+ * @public
+ * @class
  */
 export class BotAuthenticator {
 
     /**
      * @public
+     * @constructor
      */
-    public constructor(private server : restify.Server, private bot : builder.UniversalBot, private options : IBotAuthOptions) {
+    public constructor(private server : restify.Server, private bot : builder.UniversalBot, private options : IBotAuthenticatorOptions) {
         if(!bot || !server) { 
             throw new Error("Autenticator constructor failed because required parameters were null/undefined");
         }
@@ -90,18 +95,9 @@ export class BotAuthenticator {
      * @param {IBotAuthProviderOptions} options
      * @return {BotAuth} this
      */
-    public provider(name : string, options : IBotAuthProvider) : BotAuthenticator { 
-        let args = Object.assign({
+    public provider(name : string, factory : (options : IStrategyOptions) => IStrategy) : BotAuthenticator { 
+        let s : passport.Strategy = factory({
             callbackURL : this.callbackUrl(name)
-        }, options.args);
-
-        let s : passport.Strategy = new (<any>options.strategy)(args, function(accessToken : string, refreshToken : string, profile : any, done : any) {
-            profile = profile || {};
-            profile.id = profile.id || crypto.randomBytes(32).toString('hex');   
-            profile.accessToken = accessToken;
-            profile.refreshToken = refreshToken;
-            
-            return done(null, profile);
         });
 
         passport.use(name, s);
@@ -160,6 +156,13 @@ export class BotAuthenticator {
             return session.userData.botauth.user[providerId];
         } else {
             return null;
+        }
+    }
+
+    public logout(session : builder.Session, providerId : string) : void {
+        if(session && session.userData && session.userData.botauth && session.userData.botauth.user && session.userData.botauth.user.hasOwnProperty(providerId)) {
+            delete session.userData.botauth.user[providerId];
+            session.save();
         }
     }
 
