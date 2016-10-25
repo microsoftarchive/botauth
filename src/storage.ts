@@ -3,7 +3,8 @@ export interface ICredential {
     conversation : string
 
     authToken : string,
-    refreshToken : string
+    refreshToken : string,
+    user : any
 }
 
 export interface ICredentialStorage {

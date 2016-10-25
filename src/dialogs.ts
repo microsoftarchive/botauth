@@ -1,7 +1,7 @@
 import builder = require("botbuilder");
 import crypto = require("crypto");
 
-import { ICredentialStorage, ICredential } from "./storage"
+//import { ICredentialStorage, ICredential } from "./storage"
 
 export interface IAuthDialogOptions {
     providerId : string,
@@ -13,7 +13,8 @@ export interface IAuthDialogOptions {
     cancelMatches : RegExp
     reloadText : string,
     reloadMatches : RegExp,
-    unauthorizedText : string
+    unauthorizedText : string,
+    secret : string
 }
 
 const defaultOptions : IAuthDialogOptions = {
@@ -23,7 +24,8 @@ const defaultOptions : IAuthDialogOptions = {
     cancelMatches : /cancel/,
     reloadText : "starting over",
     reloadMatches : /try again/,
-    unauthorizedText : "The code you entered an invalid code or your authorization has expired.  Please try again."
+    unauthorizedText : "The code you entered an invalid code or your authorization has expired.  Please try again.",
+    secret : null
 } as IAuthDialogOptions;
 
 /**
@@ -37,12 +39,8 @@ export class AuthDialog extends builder.Dialog {
      * @param {ICredentialStorage} store
      * @param {IAuthDialogOptions} options
      */
-    constructor(private store : ICredentialStorage, private options? : IAuthDialogOptions) {
+    constructor(private options? : IAuthDialogOptions) {
         super();
-
-        if(!store) {
-            throw new Error("ICredentialStorage should not be null");
-        }
 
         this.options = Object.assign({}, defaultOptions, options);
 
@@ -59,17 +57,18 @@ export class AuthDialog extends builder.Dialog {
     public begin<T>(session: builder.Session, args? : IAuthDialogOptions) : void {
         let opt = Object.assign({}, this.options, args);
 
-        let state = session.conversationData.authContext = crypto.randomBytes(32).toString('hex');
-        session.save();
+        // let state = session.conversationData.botauth.challenge = crypto.randomBytes(32).toString('hex');
+        // session.save();
 
         //send the signin card to the user
+        //todo: hero card vs signincard???
         var msg = new builder.Message(session)
             .attachments([
                 new builder.SigninCard(session)
                     .text(opt.text) 
-                    .button(opt.buttonText, opt.buttonUrl + '?state=' + encodeURIComponent(state))
+                    .button(opt.buttonText, opt.buttonUrl)
             ]);
-        session.send(msg); 
+        session.send(msg);
     }
 
     /**
@@ -78,30 +77,43 @@ export class AuthDialog extends builder.Dialog {
      * @param {builder.Session} session
      */
     public replyReceived(session : builder.Session) : void {
-
-        let convoId : string = session.conversationData.authContext;
+        let challenge : string = session.conversationData.challenge;
         let userEntered : string = session.message.text;
 
-        console.log(userEntered, session.conversationData);
+        let user : any;
 
-        //lookup magic code
-        this.store.findCredential(userEntered, convoId, (err : Error, cred : ICredential) => {
-            if(err) {
-                //end the dialog because of an error
-                session.endDialogWithResult({ response : false, resumed : builder.ResumeReason.notCompleted, error: err });
-            } else if(cred) {
-                console.log(cred);
-                let magicCode : string = cred._id.slice(-6);
-                if(session.message.text === magicCode && convoId === cred.conversation) {
-                    //authentication successful, return result to calling  
-                    session.endDialogWithResult({ response : true, resumed : builder.ResumeReason.completed });
-                } else {
-                    //magic number is wrong
-                    session.send(this.options.unauthorizedText);
-                }
-            } else {
-                session.endDialogWithResult({response:false, resumed: builder.ResumeReason.canceled});
-            }
-        }); 
+        try {
+            let decipher = crypto.createDecipher("aes192", userEntered + this.options.secret);
+            let json = decipher.update(session.conversationData.botauth.response, 'base64', 'utf8') + decipher.final('utf8');
+            user = JSON.parse(json);            
+        } catch (error) {
+            //decryption failure means that the user provided the wrong magic number
+            console.error(error);
+            user = null;
+        }
+
+        if(!user) {
+            //clear the challenge information
+            session.conversationData.botauth.response = null;
+            session.save();
+
+            //tell the user that the magic code was wrong and to try again
+            session.send(this.options.unauthorizedText);
+            return;
+        } else {
+            //clear the challenge information
+            session.conversationData.botauth.response = null;
+
+            //save user profile to userData
+            session.userData.botauth = session.userData.botauth || {};
+            session.userData.botauth.user = session.userData.botauth.user || {};
+            session.userData.botauth.user[user.provider] = user;
+            session.save();
+
+            console.log(session.userData.botauth.user);
+
+            //return success to the parent dialog, and include the user.
+            session.endDialogWithResult({ response : user, resumed : builder.ResumeReason.completed });
+        }
     }
 }
