@@ -6,60 +6,65 @@
 
 # Setup
 *botauth* is available as an npm package 
-
-	npm install --save botauth
-	
+```bash
+npm install --save botauth
+```	
 # Getting Started
-	// Setup Restify Server
-	var server = restify.createServer();
-	server.use(restify.bodyParser());
-	server.use(restify.queryParser());
-	
-	// Create chat connector with bot's Microsoft app identity
-	var connector = new builder.ChatConnector({
-      		appId: MICROSOFT_APP_ID,
-      		appPassword: MICROSOFT_APP_PASSWORD
-	});
+```javascript
+// Setup Restify Server
+var server = restify.createServer();
+server.use(restify.bodyParser());
+server.use(restify.queryParser());
 
-	// Create bot builder client and connect it to restify server
-	var bot = new builder.UniversalBot(connector);
-	server.post('/api/messages', connector.listen());
+// Create chat connector with bot's Microsoft app identity
+var connector = new builder.ChatConnector({
+	appId: MICROSOFT_APP_ID,
+	appPassword: MICROSOFT_APP_PASSWORD
+});
 
-	// Create the storage connector for BotAuth
-	var storage = new Storage(DB_URI);
+// Create bot builder client and connect it to restify server
+var bot = new builder.UniversalBot(connector);
+server.post('/api/messages', connector.listen());
 
-	// Initialize with the strategies we want to use
-	var auth = new botauth.Authenticator(server, bot, storage, { baseUrl : "https://" + WEBSITE_HOSTNAME })
-    .provider("dropbox", { 
-        strategy : DropboxOAuth2Strategy,
-        args : {
-            clientID : DROPBOX_APP_ID,
-            clientSecret : DROPBOX_APP_SECRET
-        }
-    });
-		
-	//start the server
-	server.listen(PORT, function () {
-	   console.log('%s listening to %s', server.name, server.url); 
-	});
+// Create the storage connector for BotAuth
+var storage = new Storage(DB_URI);
+
+// Initialize with the strategies we want to use
+var auth = new botauth.Authenticator(server, bot, storage, { baseUrl : "https://" + WEBSITE_HOSTNAME })
+.provider("dropbox", { 
+strategy : DropboxOAuth2Strategy,
+args : {
+    clientID : DROPBOX_APP_ID,
+    clientSecret : DROPBOX_APP_SECRET
+}
+});
+
+//start the server
+server.listen(PORT, function () {
+   console.log('%s listening to %s', server.name, server.url); 
+});
+```
+More sample code is available at https://github.com/mattdot/botauth-sample/
 
 # Authenticated Dialog
 Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
 
-	bot.dialog('/dropbox', auth.authenticate("dropbox").concat([ 
-  		function(session, results) {
-    			session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
- 		}
-	]));
-
+```javascript
+bot.dialog('/dropbox', auth.authenticate("dropbox").concat([ 
+	function(session, results) {
+		session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
+	}
+]));
+```
 # Storage Provider
 The *botauth* framework needs a place to store state, and instead of embedding this storage mechanism within *botauth*, the framework requires the developer to provide a object which stores *botauth* state in whatever way you want.  For convenience an implementation is provided in the [authbot-mongoose](https://github.com/mattdot/authbot-mongoose) project which allows you to use mongodb or documentdb without having to write your own storage provider.
-
-	npm install --save authbot-mongoose
-
+```bash
+npm install --save authbot-mongoose
+```
 The storage provider accepts a mongo style uri connection string. `mongodb://user:password@ds123456.mlab.com:46345/mydb`
+```javascript
+const Storage = require('authbot-mongoose');
 
-	const Storage = require('authbot-mongoose');
-
-	// Create the storage connector for BotAuth
-	var storage = new Storage(DB_URI);
+// Create the storage connector for BotAuth
+var storage = new Storage(DB_URI);
+```
