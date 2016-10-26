@@ -23,14 +23,16 @@ export interface IBotAuthenticatorOptions {
     basePath : string,
     secret : string,
     resumption : IResumptionProvider,
-    successRedirect? : string
+    successRedirect? : string,
+    session? : boolean
 }
 
 const defaultOptions : IBotAuthenticatorOptions = {
     basePath : "botauth",
     resumption : null,
     secret : null,
-    baseUrl : null
+    baseUrl : null,
+    session : false
 };
 
 export interface IStrategyOptions {
@@ -74,9 +76,18 @@ export class BotAuthenticator {
         //configure restify/express to use passport
         this.server.use(<any>passport.initialize());
 
+        if(this.options.session) {
+            passport.serializeUser((user, done) => {
+                done(null, user);
+            });
+            passport.deserializeUser((userId, done)=> {
+                done(null, userId);
+            });
+        }
+
         //add routes for handling oauth redirect and callbacks
-        this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect);
-        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback, this.options.resumption.restoreHandler(), this.credential_callback.bind(this));
+        this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect.bind(this));
+        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback.bind(this), this.options.resumption.restoreHandler(), this.credential_callback.bind(this));
 
         //configure bot to save conversation and user scoped data
         //todo: should we use our own bot storage connection to avoid overwriting these??
@@ -188,7 +199,7 @@ export class BotAuthenticator {
         let providerId : string = req.params.providerId;
 
         //this redirects to the authentication provider
-        return passport.authenticate(providerId, { session : false })(<any>req, <any>res, <any>next);
+        return passport.authenticate(providerId, { session : this.options.session })(<any>req, <any>res, <any>next);
     }
 
     /**
@@ -196,7 +207,7 @@ export class BotAuthenticator {
      */
     private passport_callback(req : restify.Request, res: restify.Response, next : restify.RequestHandler) : any {
         let providerId : string = req.params.providerId;
-        return passport.authenticate(providerId, { session: false }) (<any> req, <any> res, <any> next);
+        return passport.authenticate(providerId, { session: this.options.session }) (<any> req, <any> res, <any> next);
     }
 
     /**
