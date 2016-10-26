@@ -77,6 +77,7 @@ export class BotAuthenticator {
         this.server.use(<any>passport.initialize());
 
         if(this.options.session) {
+            this.server.use(<any>passport.session());
             passport.serializeUser((user, done) => {
                 done(null, user);
             });
