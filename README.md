@@ -27,7 +27,7 @@ var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
 
 // Initialize with the strategies we want to use
-var auth = new botauth.Authenticator(server, bot, { baseUrl : "https://" + WEBSITE_HOSTNAME })
+var auth = new botauth.Authenticator(server, bot, { secret : "something secret",  baseUrl : "https://" + WEBSITE_HOSTNAME })
 .provider("dropbox", function(options) { 
 	return new DropboxOAuth2Strategy({
     		clientID : DROPBOX_APP_ID,
@@ -54,7 +54,8 @@ Use the *authenticate* method to make sure that the user has authenticated with 
 bot.dialog('/dropbox', [].concat(
 	auth.authenticate("dropbox"),
 	function(session, results) {
-		session.endDialog("Welcome " + session.userData.botauth.dropbox.displayName);
+		var user = auth.profile(session, "dropbox");
+		session.endDialog("Welcome " + user.displayName);
 	}
 ));
 ```
