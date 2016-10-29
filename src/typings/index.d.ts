@@ -5,5 +5,4 @@
 /// <reference path="globals/mime/index.d.ts" />
 /// <reference path="globals/node/index.d.ts" />
 /// <reference path="globals/passport/index.d.ts" />
-/// <reference path="globals/restify/index.d.ts" />
 /// <reference path="globals/serve-static/index.d.ts" />

@@ -4,17 +4,17 @@ import crypto = require("crypto");
 import { IChallengeResponse } from "./interfaces";
 
 export interface IAuthDialogOptions {
-    providerId : string,
-    text : string,
-    imageUrl : string,
-    buttonText : string,
-    buttonUrl : string,
-    cancelText : string,
-    cancelMatches : RegExp
-    reloadText : string,
-    reloadMatches : RegExp,
-    unauthorizedText : string,
-    secret : string
+    providerId? : string,
+    text? : string,
+    imageUrl? : string,
+    buttonText? : string,
+    buttonUrl? : string,
+    cancelText? : string,
+    cancelMatches? : RegExp
+    reloadText? : string,
+    reloadMatches? : RegExp,
+    unauthorizedText? : string,
+    secret? : string
 }
 
 const defaultOptions : IAuthDialogOptions = {

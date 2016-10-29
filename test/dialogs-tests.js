@@ -1,6 +1,6 @@
 const assert = require('assert');
 const builder = require('botbuilder');
-const library = require('../lib/library');
+const library = require('../lib/dialogs');
 
 describe('library', function() {
     describe('#auth', function() {

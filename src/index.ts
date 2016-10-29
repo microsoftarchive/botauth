@@ -1,9 +1,40 @@
 /// <reference path="typings/index.d.ts" />
 
+// 
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license.
+// 
+// Bot Auth Github:
+// https://github.com/mattdot/BotAuth
+// 
+// Copyright (c) Microsoft Corporation
+// All rights reserved.
+// 
+// MIT License:
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+
+import url = require('url');
 import crypto = require('crypto');
 import builder = require('botbuilder');
 import passport = require('passport');
-import restify = require('restify');
 
 import { AuthDialog, IAuthDialogOptions } from "./dialogs";
 export { AuthDialog, IAuthDialogOptions };
@@ -11,7 +42,7 @@ export { AuthDialog, IAuthDialogOptions };
 import { IResumptionProvider, CookieResumption } from "./resumption";
 export { IResumptionProvider, CookieResumption };
 
-import { IChallengeResponse, IUser } from "./interfaces";
+import { IChallengeResponse, IUser, IServer, IServerRequest, IServerResponse, RequestHandler, NextFunction } from "./interfaces";
 export { IChallengeResponse, IUser };
 
 const DIALOG_LIBRARY : string = "botauth";
@@ -20,9 +51,9 @@ const DIALOG_FULLNAME : string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
 
 export interface IBotAuthenticatorOptions {
     baseUrl : string,
-    basePath : string,
+    basePath? : string,
     secret : string,
-    resumption : IResumptionProvider,
+    resumption? : IResumptionProvider,
     successRedirect? : string,
     session? : boolean
 }
@@ -57,13 +88,21 @@ export class BotAuthenticator {
      * @public
      * @constructor
      */
-    public constructor(private server : restify.Server, private bot : builder.UniversalBot, private options : IBotAuthenticatorOptions) {
+    public constructor(private server : IServer, private bot : builder.UniversalBot, private options : IBotAuthenticatorOptions) {
         if(!bot || !server) { 
             throw new Error("Autenticator constructor failed because required parameters were null/undefined");
         }
 
         //override default options with options passed by caller
         this.options = Object.assign({}, defaultOptions, options);
+        if(!this.options.baseUrl) {
+            throw new Error("options.baseUrl can not be null");
+        } else {
+            let parsedUrl = url.parse(this.options.baseUrl);
+            if(parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
+                throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
+            }
+        }
 
         if(!this.options.secret) {
             throw new Error("options.secret can not be null");
@@ -74,10 +113,10 @@ export class BotAuthenticator {
         }
 
         //configure restify/express to use passport
-        this.server.use(<any>passport.initialize());
+        this.server.use(passport.initialize());
 
         if(this.options.session) {
-            this.server.use(<any>passport.session());
+            this.server.use(passport.session());
             passport.serializeUser((user, done) => {
                 done(null, user);
             });
@@ -87,8 +126,8 @@ export class BotAuthenticator {
         }
 
         //add routes for handling oauth redirect and callbacks
-        this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect.bind(this));
-        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback.bind(this), this.options.resumption.restoreHandler(), this.credential_callback.bind(this));
+        this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
+        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback.bind(this));
 
         //configure bot to save conversation and user scoped data
         //todo: should we use our own bot storage connection to avoid overwriting these??
@@ -97,7 +136,7 @@ export class BotAuthenticator {
 
         //add auth dialogs to a library
         let lib = new builder.Library(DIALOG_LIBRARY);
-        lib.dialog(DIALOG_ID, new AuthDialog(<any>{ secret : this.options.secret }));
+        lib.dialog(DIALOG_ID, new AuthDialog({ secret : this.options.secret }));
         this.bot.library(lib);
     }
 
@@ -113,6 +152,11 @@ export class BotAuthenticator {
             callbackURL : this.callbackUrl(name)
         });
 
+        if(!s) {
+            throw new Error("The 'factory' method passed to BotAuthenticator.provider must return an instance of an authentication Strategy.");
+        }
+    
+        //register this authentication strategy with passport
         passport.use(name, s);
 
         return this;
@@ -125,28 +169,30 @@ export class BotAuthenticator {
      */
     public authenticate(providerId : string, options : IAuthenticateOptions) : builder.IDialogWaterfallStep[] {
         let authSteps : builder.IDialogWaterfallStep[] = [
+            //step 1: check if user is authenticated, if not start the auth dialog
             (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
                 let user = this.profile(session, providerId);
                 if(user) {
-                    //user is already authenticated
-                    skip(<any>{ response : user });
+                    //user is already authenticated, forward the 
+                    skip({ response : args.response, resumed : builder.ResumeReason.forward });
                 } else {
                     //pass context to redirect
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString('base64'); 
                     session.beginDialog(DIALOG_FULLNAME, {
                         providerId : providerId, 
-                        buttonUrl : this.authUrl(providerId, cxt)
+                        buttonUrl : this.authUrl(providerId, cxt),
+                        originalArgs : args.response
                     });
                 }
             },
             (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
                 if(args) {
                     if(args.resumed === builder.ResumeReason.completed || args.resumed === builder.ResumeReason.forward) {
-                        skip(<any>{ response: args.response });
+                        skip({ response: args.response, resumed : builder.ResumeReason.forward });
                         return;
                     } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.notCompleted) {
                         //todo: should we end the conversation or just the dialog on auth failure?
-                        session.endConversation("auth failed, ending conversation");
+                        session.endDialogWithResult({ response : false, resumed : args.resumed });
                         return;
                     } 
                 }
@@ -196,25 +242,33 @@ export class BotAuthenticator {
     /**
      * use the passport strategy to redirect to the authentication provider
      */
-    private passport_redirect(req : restify.Request, res: restify.Response, next : restify.Next) {
-        let providerId : string = req.params.providerId;
+    private passport_redirect() {
+        let session = this.options.session;
 
-        //this redirects to the authentication provider
-        return passport.authenticate(providerId, { session : this.options.session })(<any>req, <any>res, <any>next);
+        return (req : IServerRequest, res: IServerResponse, next : NextFunction) => {
+            let providerId : string = req.params.providerId;
+
+            //this redirects to the authentication provider
+            return passport.authenticate(providerId, { session : session })(req, res, next);
+        };
     }
 
     /**
      * send callback through passport to get access/refresh tokens
      */
-    private passport_callback(req : restify.Request, res: restify.Response, next : restify.RequestHandler) : any {
-        let providerId : string = req.params.providerId;
-        return passport.authenticate(providerId, { session: this.options.session }) (<any> req, <any> res, <any> next);
+    private passport_callback() {
+        let session = this.options.session;
+
+        return (req : IServerRequest, res: IServerResponse, next : NextFunction) : any => {
+            let providerId : string = req.params.providerId;
+            return passport.authenticate(providerId, { session: session }) (req, res, next);
+        };
     }
 
     /**
      *  read the state query param and lookup stored authorization information
      */
-    private credential_callback(req : restify.Request, res: restify.Response, next : restify.Next) {
+    private credential_callback(req : IServerRequest, res: IServerResponse, next : NextFunction) {
         let providerId : string = req.params.providerId;
 
         //decode the resumption token into an address
@@ -265,7 +319,8 @@ export class BotAuthenticator {
                     res.end();
                 } else {
                     if(this.options.successRedirect) {
-                        res.send("302", "redirecting...", { "Location" : `${this.options.successRedirect}#${encodeURIComponent(magic)}`});
+                        res.header("Location", `${this.options.successRedirect}#${encodeURIComponent(magic)}`);
+                        res.send(302, "redirecting...");
                         res.end();
                     } else {
                         //show the user the magic number they need to enter in the chat window

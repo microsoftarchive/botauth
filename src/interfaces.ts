@@ -1,3 +1,6 @@
+/// <reference path="typings/index.d.ts" />
+import express = require("express");
+
 export interface IUser {
     id : string,
     provider : string,
@@ -17,3 +20,15 @@ export interface IChallengeResponse {
     user : IUser,
     timestamp : Date
 }
+
+export interface IServer extends express.Application {
+}
+
+export interface IServerRequest extends express.Request {
+}
+
+export interface IServerResponse extends express.Response {
+}
+
+
+export { RequestHandler, NextFunction } from "express";
