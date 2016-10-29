@@ -1,4 +1,4 @@
-# Overview 
+# BotAuth [![Build Status](https://travis-ci.org/mattdot/botauth.svg?branch=master)](https://travis-ci.org/mattdot/botauth)
 
 	botauth is still pre-release and under active development. APIs may change until we get to v1.0.
 
