@@ -4,7 +4,8 @@
   "description": "OAuth Middleware for BotFramework",
   "main": "./lib/",
   "scripts": {
-    "test": "./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/mocha",
+    "prepublish": "./node_modules/.bin/tslint --project tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -21,13 +22,19 @@
   },
   "homepage": "https://github.com/mattdot/botauth#readme",
   "dependencies": {
-    "botbuilder": "^3.4.0",
+    "botbuilder": "^3.4.2",
     "cookie": "^0.3.1",
-    "passport": "^0.3.2"
+    "passport": "^0.3.2",
+    "passport-strategy": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.0.2",
+    "tslint": "^3.15.1",
     "typescript": "^2.0.3"
-  }
+  },
+  "typings": "lib/index",
+  "files": [
+    "lib/"
+  ]
 }

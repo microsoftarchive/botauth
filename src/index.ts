@@ -1,15 +1,13 @@
-/// <reference path="typings/index.d.ts" />
-
-// 
+//
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
-// 
+//
 // Bot Auth Github:
 // https://github.com/mattdot/BotAuth
-// 
+//
 // Copyright (c) Microsoft Corporation
 // All rights reserved.
-// 
+//
 // MIT License:
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -18,10 +16,10 @@
 // distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to
 // the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,10 +29,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import url = require('url');
-import crypto = require('crypto');
-import builder = require('botbuilder');
-import passport = require('passport');
+import url = require("url");
+import crypto = require("crypto");
+import builder = require("botbuilder");
+import passport = require("passport");
+import Strategy = require("passport-strategy");
 
 import { AuthDialog, IAuthDialogOptions } from "./dialogs";
 export { AuthDialog, IAuthDialogOptions };
@@ -45,33 +44,33 @@ export { IResumptionProvider, CookieResumption };
 import { IChallengeResponse, IUser, IServer, IServerRequest, IServerResponse, RequestHandler, NextFunction } from "./interfaces";
 export { IChallengeResponse, IUser };
 
-const DIALOG_LIBRARY : string = "botauth";
-const DIALOG_ID : string = "auth";
-const DIALOG_FULLNAME : string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
+const DIALOG_LIBRARY: string = "botauth";
+const DIALOG_ID: string = "auth";
+const DIALOG_FULLNAME: string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
 
 export interface IBotAuthenticatorOptions {
-    baseUrl : string,
-    basePath? : string,
-    secret : string,
-    resumption? : IResumptionProvider,
-    successRedirect? : string,
-    session? : boolean
+    baseUrl: string;
+    basePath?: string;
+    secret: string;
+    resumption?: IResumptionProvider;
+    successRedirect?: string;
+    session?: boolean;
 }
 
-const defaultOptions : IBotAuthenticatorOptions = {
-    basePath : "botauth",
-    resumption : null,
-    secret : null,
-    baseUrl : null,
-    session : false
+const defaultOptions: IBotAuthenticatorOptions = {
+    basePath: "botauth",
+    resumption: null,
+    secret: null,
+    baseUrl: null,
+    session: false
 };
 
 export interface IStrategyOptions {
-    callbackURL : string
+    callbackURL: string;
 }
 
 export interface IStrategy {
-    authenticate(req : any, options : any) : void;
+    authenticate(req: any, options: any): void;
 }
 
 export interface IAuthenticateOptions {
@@ -88,117 +87,121 @@ export class BotAuthenticator {
      * @public
      * @constructor
      */
-    public constructor(private server : IServer, private bot : builder.UniversalBot, private options : IBotAuthenticatorOptions) {
-        if(!bot || !server) { 
-            throw new Error("Autenticator constructor failed because required parameters were null/undefined");
+    public constructor(private server: IServer, private bot: builder.UniversalBot, private options: IBotAuthenticatorOptions) {
+        if (!bot) {
+            throw new Error("BotAuthenticator constructor failed because 'bot' argument was null/undefined");
         }
 
-        //override default options with options passed by caller
+        if (!server) {
+            throw new Error("BotAuthenticator constructor failed because 'server' argument was null/undefined");
+        }
+
+        // override default options with options passed by caller
         this.options = Object.assign({}, defaultOptions, options);
-        if(!this.options.baseUrl) {
+        if (!this.options.baseUrl) {
             throw new Error("options.baseUrl can not be null");
         } else {
             let parsedUrl = url.parse(this.options.baseUrl);
-            if(parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
+            if (parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
                 throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
             }
         }
 
-        if(!this.options.secret) {
+        if (!this.options.secret) {
             throw new Error("options.secret can not be null");
         }
 
-        if(!this.options.resumption) {
-            this.options.resumption = new CookieResumption(15*60, this.options.secret);
+        if (!this.options.resumption) {
+            this.options.resumption = new CookieResumption(15 * 60, this.options.secret);
         }
 
-        //configure restify/express to use passport
+        // configure restify/express to use passport
         this.server.use(passport.initialize());
 
-        if(this.options.session) {
+        if (this.options.session) {
             this.server.use(passport.session());
-            passport.serializeUser((user, done) => {
+            passport.serializeUser((user: any, done: any) => {
                 done(null, user);
             });
-            passport.deserializeUser((userId, done)=> {
+            passport.deserializeUser((userId: any, done: any) => {
                 done(null, userId);
             });
         }
 
-        //add routes for handling oauth redirect and callbacks
+        // add routes for handling oauth redirect and callbacks
         this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
         this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback.bind(this));
 
-        //configure bot to save conversation and user scoped data
-        //todo: should we use our own bot storage connection to avoid overwriting these??
+        // configure bot to save conversation and user scoped data
+        // todo: should we use our own bot storage connection to avoid overwriting these??
         this.bot.set("persistConversationData", true);
         this.bot.set("persistUserData", true);
 
-        //add auth dialogs to a library
+        // add auth dialogs to a library
         let lib = new builder.Library(DIALOG_LIBRARY);
-        lib.dialog(DIALOG_ID, new AuthDialog({ secret : this.options.secret }));
+        lib.dialog(DIALOG_ID, new AuthDialog({ secret: this.options.secret }));
         this.bot.library(lib);
     }
 
     /**
-     * Registers a provider with passportjs and may start monitoring for auth requests 
-     * @param {String} name 
+     * Registers a provider with passportjs and may start monitoring for auth requests
+     * @param {String} name
      * @param {Strategy} strategy
      * @param {IBotAuthProviderOptions} options
      * @return {BotAuth} this
      */
-    public provider(name : string, factory : (options : IStrategyOptions) => IStrategy) : BotAuthenticator { 
-        let s : passport.Strategy = factory({
-            callbackURL : this.callbackUrl(name)
+    public provider(name: string, factory: (options: IStrategyOptions) => IStrategy): BotAuthenticator {
+        let s: Strategy = factory({
+            callbackURL: this.callbackUrl(name)
         });
 
-        if(!s) {
+        if (!s) {
             throw new Error("The 'factory' method passed to BotAuthenticator.provider must return an instance of an authentication Strategy.");
         }
-    
-        //register this authentication strategy with passport
+
+        // register this authentication strategy with passport
         passport.use(name, s);
 
         return this;
     }
 
     /**
-     * Returns a DialogWaterfallStep which provides authentication for a specific dialog 
-     * @param {String} providerId 
-     * @return {IDialogWaterfallStep[]} 
+     * Returns a DialogWaterfallStep which provides authentication for a specific dialog
+     * @param {String} providerId
+     * @return {IDialogWaterfallStep[]}
      */
-    public authenticate(providerId : string, options : IAuthenticateOptions) : builder.IDialogWaterfallStep[] {
-        let authSteps : builder.IDialogWaterfallStep[] = [
-            //step 1: check if user is authenticated, if not start the auth dialog
-            (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
+    public authenticate(providerId: string, options: IAuthenticateOptions): builder.IDialogWaterfallStep[] {
+        let authSteps: builder.IDialogWaterfallStep[] = [
+            // step 1: check if user is authenticated, if not start the auth dialog
+            (session: builder.Session, args: builder.IDialogResult<any>, skip: (results?: builder.IDialogResult<any>) => void) => {
                 let user = this.profile(session, providerId);
-                if(user) {
-                    //user is already authenticated, forward the 
-                    skip({ response : args.response, resumed : builder.ResumeReason.forward });
+                if (user) {
+                    // user is already authenticated, forward the
+                    skip({ response: args.response, resumed: builder.ResumeReason.forward });
                 } else {
-                    //pass context to redirect
-                    let cxt = new Buffer(JSON.stringify(session.message.address)).toString('base64'); 
+                    // pass context to redirect
+                    let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
                     session.beginDialog(DIALOG_FULLNAME, {
-                        providerId : providerId, 
-                        buttonUrl : this.authUrl(providerId, cxt),
-                        originalArgs : args.response
+                        providerId: providerId,
+                        buttonUrl: this.authUrl(providerId, cxt),
+                        originalArgs: args.response
                     });
                 }
             },
-            (session : builder.Session, args : builder.IDialogResult<any>, skip : (results?: builder.IDialogResult<any>) => void) => {
-                if(args) {
-                    if(args.resumed === builder.ResumeReason.completed || args.resumed === builder.ResumeReason.forward) {
-                        skip({ response: args.response, resumed : builder.ResumeReason.forward });
+            (session: builder.Session, args: builder.IDialogResult<any>, skip: (results?: builder.IDialogResult<any>) => void) => {
+                if (args) {
+                    if (args.resumed === builder.ResumeReason.completed || args.resumed === builder.ResumeReason.forward) {
+                        skip({ response: args.response, resumed: builder.ResumeReason.forward });
                         return;
-                    } else if(args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.notCompleted) {
-                        //todo: should we end the conversation or just the dialog on auth failure?
-                        session.endDialogWithResult({ response : false, resumed : args.resumed });
+                    } else if (args.resumed === builder.ResumeReason.back || args.resumed === builder.ResumeReason.canceled || args.resumed === builder.ResumeReason.notCompleted) {
+                        // todo: should we end the conversation or just the dialog on auth failure?
+                        session.endDialogWithResult({ response: false, resumed: args.resumed });
                         return;
-                    } 
+                    }
                 }
             }
         ];
-        
+
         return authSteps;
     }
 
@@ -208,34 +211,34 @@ export class BotAuthenticator {
      * @param {string} botauth provider id of the profile
      * @return {IUser} user profile if it exists; otherwise null
      **/
-    public profile(session : builder.Session, providerId : string) : IUser {
-        //todo: add setter
+    public profile(session: builder.Session, providerId: string): IUser {
+        // todo: add setter
 
-        if(session && session.userData && session.userData.botauth && session.userData.botauth.user && session.userData.botauth.user.hasOwnProperty(providerId)) {
-            let encryptedProfile : string = session.userData.botauth.user[providerId];
-            
-            //decrypt
+        if (session && session.userData && session.userData.botauth && session.userData.botauth.user && session.userData.botauth.user.hasOwnProperty(providerId)) {
+            let encryptedProfile: string = session.userData.botauth.user[providerId];
+
+            // decrypt
             let decipher = crypto.createDecipher("aes192", this.options.secret);
-            let json = decipher.update(encryptedProfile, 'base64', 'utf8') + decipher.final('utf8');
-            
+            let json = decipher.update(encryptedProfile, "base64", "utf8") + decipher.final("utf8");
+
             return JSON.parse(json);
         } else {
             return null;
         }
     }
 
-    public logout(session : builder.Session, providerId : string) : void {
-        if(session && session.userData && session.userData.botauth && session.userData.botauth.user && session.userData.botauth.user.hasOwnProperty(providerId)) {
+    public logout(session: builder.Session, providerId: string): void {
+        if (session && session.userData && session.userData.botauth && session.userData.botauth.user && session.userData.botauth.user.hasOwnProperty(providerId)) {
             delete session.userData.botauth.user[providerId];
             session.save();
         }
     }
 
-    private callbackUrl(providerName : string) {
+    private callbackUrl(providerName: string) {
         return `${this.options.baseUrl}/${this.options.basePath}/${providerName}/callback`;
     }
 
-    private authUrl(providerName : string, state : string) {
+    private authUrl(providerName: string, state: string) {
         return `${this.options.baseUrl}/${this.options.basePath}/${providerName}?state=${ encodeURIComponent(state) }`;
     }
 
@@ -245,11 +248,11 @@ export class BotAuthenticator {
     private passport_redirect() {
         let session = this.options.session;
 
-        return (req : IServerRequest, res: IServerResponse, next : NextFunction) => {
-            let providerId : string = req.params.providerId;
+        return (req: IServerRequest, res: IServerResponse, next: NextFunction) => {
+            let providerId: string = (<any>req.params).providerId;
 
-            //this redirects to the authentication provider
-            return passport.authenticate(providerId, { session : session })(req, res, next);
+            // this redirects to the authentication provider
+            return passport.authenticate(providerId, { session: session })(req, res, next);
         };
     }
 
@@ -259,8 +262,8 @@ export class BotAuthenticator {
     private passport_callback() {
         let session = this.options.session;
 
-        return (req : IServerRequest, res: IServerResponse, next : NextFunction) : any => {
-            let providerId : string = req.params.providerId;
+        return (req: IServerRequest, res: IServerResponse, next: NextFunction): any => {
+            let providerId: string = (<any>req.params).providerId;
             return passport.authenticate(providerId, { session: session }) (req, res, next);
         };
     }
@@ -268,63 +271,67 @@ export class BotAuthenticator {
     /**
      *  read the state query param and lookup stored authorization information
      */
-    private credential_callback(req : IServerRequest, res: IServerResponse, next : NextFunction) {
-        let providerId : string = req.params.providerId;
+    private credential_callback(req: IServerRequest, res: IServerResponse, next: NextFunction) {
+        let providerId: string = (<any>req.params).providerId;
 
-        //decode the resumption token into an address
-        let addr : builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString());;
-        if(!addr) {
-            //fail because we don't have a valid bot address to resume authentication
-            res.send(403, "resumption token has expired or is invalid");
+        // decode the resumption token into an address
+        let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString());
+        if (!addr) {
+            // fail because we don"t have a valid bot address to resume authentication
+            res.status(403);
+            res.send("resumption token has expired or is invalid");
             res.end();
-            return next();    
+            return next();
         }
 
-        //generate magic number
-        let magic : string = crypto.randomBytes(3).toString('hex');
+        // generate magic number
+        let magic: string = crypto.randomBytes(3).toString("hex");
 
-        //package up the data we need for the challenge response
-        let response : IChallengeResponse = {
-            providerId : providerId,
-            user : (<any>req).user,
-            timestamp : new Date()
+        // package up the data we need for the challenge response
+        let response: IChallengeResponse = {
+            providerId: providerId,
+            user: (<any>req).user,
+            timestamp: new Date()
         };
 
-        //encrypt response data with the magic number (and secret) so that only user with magic number can decrypt later
+        // encrypt response data with the magic number (and secret) so that only user with magic number can decrypt later
         let cipher = crypto.createCipher("aes192", magic + this.options.secret);
-        let encryptedResponse = cipher.update(JSON.stringify(response), 'utf8', 'base64') + cipher.final('base64');
+        let encryptedResponse = cipher.update(JSON.stringify(response), "utf8", "base64") + cipher.final("base64");
 
-        //temporarily store this in conversationData until user enters the magic code
-        let botStorage : builder.IBotStorage = this.bot.get("storage");
-        let botContext : builder.IBotStorageContext = { persistConversationData : true, persistUserData : false, address : addr, conversationId : addr.conversation.id };
-        botStorage.getData(botContext, (err:Error, data : builder.IBotStorageData) => {        
-            //check for error getting bot state
-            if(err) {
+        // temporarily store this in conversationData until user enters the magic code
+        let botStorage: builder.IBotStorage = this.bot.get("storage");
+        let botContext: builder.IBotStorageContext = { persistConversationData: true, persistUserData: false, address: addr, conversationId: addr.conversation.id };
+        botStorage.getData(botContext, (err: Error, data: builder.IBotStorageData) => {
+            // check for error getting bot state
+            if (err) {
                 console.error(err);
-                res.send(403, "failed to get bot state");
+                res.status(403);
+                res.send("failed to get bot state");
                 res.end();
                 return;
             }
-            
-            //save response data to bot conversation data 
+
+            // save response data to bot conversation data
             let magicKey = crypto.createHmac("sha256", this.options.secret).update(magic).digest("hex");
             data.conversationData.botauth = data.conversationData.botauth || {};
             data.conversationData.botauth.responses = data.conversationData.botauth.responses || {};
             data.conversationData.botauth.responses[magicKey] = encryptedResponse;
 
-            //save updated data back to bot storage
+            // save updated data back to bot storage
             botStorage.saveData(botContext, data, (err) => {
-                if(err) {
-                    res.send(403, "saving credential failed");
+                if (err) {
+                    res.status(403);
+                    res.send("saving credential failed");
                     res.end();
                 } else {
-                    if(this.options.successRedirect) {
+                    if (this.options.successRedirect) {
+                        res.status(302);
                         res.header("Location", `${this.options.successRedirect}#${encodeURIComponent(magic)}`);
-                        res.send(302, "redirecting...");
+                        res.send("redirecting...");
                         res.end();
                     } else {
-                        //show the user the magic number they need to enter in the chat window
-                        res.end(`You're almost done. To complete your authentication, put '${ magic }' in our chat.`);
+                        // show the user the magic number they need to enter in the chat window
+                        res.end(`You"re almost done. To complete your authentication, put "${ magic }" in our chat.`);
                     }
                 }
             });

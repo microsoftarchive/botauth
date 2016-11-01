@@ -1,0 +1,11 @@
+{
+  "globalDependencies": {
+    "cookie": "registry:dt/cookie#0.1.2+20160316155526",
+    "node": "registry:env/node#6.0.0+20161019193037"
+  },
+  "dependencies": {
+    "express": "registry:npm/express#4.14.0+20160925001530",
+    "passport": "registry:npm/passport#0.3.0+20161028163825",
+    "passport-strategy": "registry:npm/passport-strategy#1.0.0+20161027023236"
+  }
+}
