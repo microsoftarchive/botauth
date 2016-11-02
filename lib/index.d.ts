@@ -34,5 +34,5 @@ export declare class BotAuthenticator {
     private authUrl(providerName, state);
     private passport_redirect();
     private passport_callback();
-    private credential_callback(req, res, next);
+    private credential_callback();
 }

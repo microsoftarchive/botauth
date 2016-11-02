@@ -130,6 +130,7 @@ export class AuthDialog extends builder.Dialog {
 
         let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
         if (!session.conversationData.botauth || !session.conversationData.botauth.responses || !session.conversationData.botauth.responses.hasOwnProperty(magicKey)) {
+            console.log("botauth data not found in conversationData: %j", session.conversationData);
             // wrong magic code provided.
             return wrongCode(magicKey);
         }
@@ -139,17 +140,18 @@ export class AuthDialog extends builder.Dialog {
             // response data is encrypted with magic number, so decrypt it.
             let decipher = crypto.createDecipher("aes192", userEntered + this.options.secret);
             let json = decipher.update(encryptedResponse, "base64", "utf8") + decipher.final("utf8");
-
+            console.log("json=%j", json);
             // decrypted plain-text is json, so parse it
             response = JSON.parse(json);
         } catch (error) {
             // decryption failure means that the user provided the wrong magic number
-            console.error(error);
+            console.log(error);
             return wrongCode(magicKey);
         }
 
         // successfully decrypted, but no response or user. should not happen
         if (!response || !response.user) {
+            console.log("no response or user");
             return wrongCode(magicKey);
         }
 

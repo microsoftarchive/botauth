@@ -130,7 +130,7 @@ export class BotAuthenticator {
 
         // add routes for handling oauth redirect and callbacks
         this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
-        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback.bind(this));
+        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
 
         // configure bot to save conversation and user scoped data
         // todo: should we use our own bot storage connection to avoid overwriting these??
@@ -271,70 +271,83 @@ export class BotAuthenticator {
     /**
      *  read the state query param and lookup stored authorization information
      */
-    private credential_callback(req: IServerRequest, res: IServerResponse, next: NextFunction) {
-        let providerId: string = (<any>req.params).providerId;
+    private credential_callback() {
+        let bot = this.bot;
+        let options = this.options;
 
-        // decode the resumption token into an address
-        let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString());
-        if (!addr) {
-            // fail because we don"t have a valid bot address to resume authentication
-            res.status(403);
-            res.send("resumption token has expired or is invalid");
-            res.end();
-            return next();
-        }
+        return (req: IServerRequest, res: IServerResponse, next: NextFunction) => {
+            let providerId: string = (<any>req.params).providerId;
+            let user:any = (<any>req).user;
 
-        // generate magic number
-        let magic: string = crypto.randomBytes(3).toString("hex");
-
-        // package up the data we need for the challenge response
-        let response: IChallengeResponse = {
-            providerId: providerId,
-            user: (<any>req).user,
-            timestamp: new Date()
-        };
-
-        // encrypt response data with the magic number (and secret) so that only user with magic number can decrypt later
-        let cipher = crypto.createCipher("aes192", magic + this.options.secret);
-        let encryptedResponse = cipher.update(JSON.stringify(response), "utf8", "base64") + cipher.final("base64");
-
-        // temporarily store this in conversationData until user enters the magic code
-        let botStorage: builder.IBotStorage = this.bot.get("storage");
-        let botContext: builder.IBotStorageContext = { persistConversationData: true, persistUserData: false, address: addr, conversationId: addr.conversation.id };
-        botStorage.getData(botContext, (err: Error, data: builder.IBotStorageData) => {
-            // check for error getting bot state
-            if (err) {
-                console.error(err);
+            if(!user) {
+                console.log("verify function yielded no user");
                 res.status(403);
-                res.send("failed to get bot state");
                 res.end();
                 return;
             }
 
-            // save response data to bot conversation data
-            let magicKey = crypto.createHmac("sha256", this.options.secret).update(magic).digest("hex");
-            data.conversationData.botauth = data.conversationData.botauth || {};
-            data.conversationData.botauth.responses = data.conversationData.botauth.responses || {};
-            data.conversationData.botauth.responses[magicKey] = encryptedResponse;
+            // decode the resumption token into an address
+            let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString("utf8"));
+            if (!addr) {
+                // fail because we don"t have a valid bot address to resume authentication
+                res.status(403);
+                res.send("resumption token has expired or is invalid");
+                res.end();
+                return next();
+            }
 
-            // save updated data back to bot storage
-            botStorage.saveData(botContext, data, (err) => {
+            // generate magic number
+            let magic: string = crypto.randomBytes(3).toString("hex");
+
+            // package up the data we need for the challenge response
+            let response: IChallengeResponse = {
+                providerId: providerId,
+                user: user,
+                timestamp: new Date()
+            };
+
+            // encrypt response data with the magic number (and secret) so that only user with magic number can decrypt later
+            let cipher = crypto.createCipher("aes192", magic + options.secret);
+            let encryptedResponse = cipher.update(JSON.stringify(response), "utf8", "base64") + cipher.final("base64");
+
+            // temporarily store this in conversationData until user enters the magic code
+            let botStorage: builder.IBotStorage = bot.get("storage");
+            let botContext: builder.IBotStorageContext = { persistConversationData: true, persistUserData: false, address: addr, conversationId: addr.conversation.id };
+            botStorage.getData(botContext, (err: Error, data: builder.IBotStorageData) => {
+                // check for error getting bot state
                 if (err) {
+                    console.error(err);
                     res.status(403);
-                    res.send("saving credential failed");
+                    res.send("failed to get bot state");
                     res.end();
-                } else {
-                    if (this.options.successRedirect) {
-                        res.status(302);
-                        res.header("Location", `${this.options.successRedirect}#${encodeURIComponent(magic)}`);
-                        res.send("redirecting...");
+                    return;
+                }
+
+                // save response data to bot conversation data
+                let magicKey = crypto.createHmac("sha256", options.secret).update(magic).digest("hex");
+                data.conversationData.botauth = data.conversationData.botauth || {};
+                data.conversationData.botauth.responses = data.conversationData.botauth.responses || {};
+                data.conversationData.botauth.responses[magicKey] = encryptedResponse;
+
+                // save updated data back to bot storage
+                botStorage.saveData(botContext, data, (err) => {
+                    if (err) {
+                        res.status(403);
+                        res.send("saving credential failed");
                         res.end();
                     } else {
-                        // show the user the magic number they need to enter in the chat window
-                        res.end(`You"re almost done. To complete your authentication, put "${ magic }" in our chat.`);
+                        if (this.options.successRedirect) {
+                            res.status(302);
+                            res.header("Location", `${options.successRedirect}#${encodeURIComponent(magic)}`);
+                            res.send("redirecting...");
+                            res.end();
+                        } else {
+                            // show the user the magic number they need to enter in the chat window
+                            res.end(`You're almost done. To complete your authentication, put "${ magic }" in our chat.`);
+                        }
                     }
-                }
+                });
             });
-        });
+        }
     }
 }
