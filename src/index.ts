@@ -277,9 +277,9 @@ export class BotAuthenticator {
 
         return (req: IServerRequest, res: IServerResponse, next: NextFunction) => {
             let providerId: string = (<any>req.params).providerId;
-            let user:any = (<any>req).user;
+            let user: any = (<any>req).user;
 
-            if(!user) {
+            if (!user) {
                 console.log("verify function yielded no user");
                 res.status(403);
                 res.end();
@@ -348,6 +348,6 @@ export class BotAuthenticator {
                     }
                 });
             });
-        }
+        };
     }
 }
