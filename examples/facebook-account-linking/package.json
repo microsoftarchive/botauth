@@ -1,0 +1,18 @@
+{
+  "name": "facebook",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "botauth": "^0.2.1",
+    "botbuilder": "^3.3.3",
+    "envx": "^1.0.0",
+    "passport-facebook": "^2.1.1",
+    "restify": "^4.1.1"
+  }
+}

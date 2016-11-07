@@ -1,0 +1,4 @@
+{
+    "welcome" : "Hello. If you upload a file to me, I'll put it in your dropbox",
+    "not_connected" : "It looks like you haven't connected me to your dropbox yet.  Sign in so I can save your file."
+}

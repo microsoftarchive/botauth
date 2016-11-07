@@ -1,0 +1,33 @@
+{
+  "name": "botauth-dropbox",
+  "version": "1.0.0",
+  "description": "botauth sample for connecting to dropbox",
+  "main": "app.js",
+  "dependencies": {
+    "botauth": "^0.2.5",
+    "botbuilder": "^3.4.0",
+    "dropbox": "^2.4.0",
+    "envx": "^1.0.0",
+    "passport-dropbox-oauth2": "^1.1.0",
+    "restify": "^4.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattdot/botauth-samples.git"
+  },
+  "keywords": [
+    "botframework",
+    "oauth",
+    "dropbox"
+  ],
+  "author": "Matt Dotson <mdotson@microsoft.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattdot/botauth-samples/issues"
+  },
+  "homepage": "https://github.com/mattdot/botauth-samples#readme"
+}

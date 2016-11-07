@@ -45,15 +45,16 @@ server.listen(PORT, function () {
    console.log('%s listening to %s', server.name, server.url); 
 });
 ```
-## Examples
-* [Facebook](https://github.com/mattdot/botauth-sample/tree/master/src/facebook)
-* [Dropbox](https://github.com/mattdot/botauth-sample/tree/master/src/dropbox)
-* [Rakuten](https://github.com/mattdot/botauth-sample/tree/master/src/rakuten)
-* [Azure AD v1](https://github.com/mattdot/botauth-sample/tree/master/src/aadv1) (coming soon)
-* [Azure AD v2](https://github.com/mattdot/botauth-sample/tree/master/src/aadv2) (coming soon)
-* [Visual Studio Online](https://github.com/mattdot/botauth-sample/tree/master/src/vso) (coming soon)
 
-More sample code is available at https://github.com/mattdot/botauth-sample/
+## Examples
+* [Facebook](https://github.com/mattdot/botauth/tree/master/examples/facebook)
+* [Dropbox](https://github.com/mattdot/botauth/tree/master/examples/dropbox)
+* [Rakuten](https://github.com/mattdot/botauth/tree/master/examples/rakuten)
+* [Azure AD v1](https://github.com/mattdot/botauth/tree/master/examples/aadv1) (coming soon)
+* [Azure AD v2](https://github.com/mattdot/botauth/tree/master/examples/aadv2) (coming soon)
+* [Visual Studio Online](https://github.com/mattdot/botauth/tree/master/examples/vso) (coming soon)
+
+More sample code is available at https://github.com/mattdot/botauth/tree/master/examples/
 
 # Authenticated Dialog
 Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.

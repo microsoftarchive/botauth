@@ -1,0 +1,23 @@
+{
+  "name": "botauth-rakuten",
+  "version": "1.0.0",
+  "description": "sample showing how to use botauth with rakuten oauth",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "rakuten",
+    "oauth"
+  ],
+  "author": "Matt Dotson <mdotson@microsoft.com>",
+  "license": "MIT",
+  "dependencies": {
+    "botauth": "^0.2.1",
+    "botbuilder": "^3.3.3",
+    "envx": "^1.0.0",
+    "passport": "^0.3.2",
+    "passport-rakuten": "^1.0.1",
+    "restify": "^4.1.1"
+  }
+}
