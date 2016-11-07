@@ -4,8 +4,7 @@
   "description": "OAuth Middleware for BotFramework",
   "main": "./lib/",
   "scripts": {
-    "test": "./node_modules/.bin/mocha",
-    "prepublish": "./node_modules/.bin/tslint --project tsconfig.json"
+    "test": "./node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
