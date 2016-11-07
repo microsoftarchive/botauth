@@ -45,6 +45,14 @@ server.listen(PORT, function () {
    console.log('%s listening to %s', server.name, server.url); 
 });
 ```
+## Examples
+* [Facebook](https://github.com/mattdot/botauth-sample/tree/master/src/facebook)
+* [Dropbox](https://github.com/mattdot/botauth-sample/tree/master/src/dropbox)
+* [Rakuten](https://github.com/mattdot/botauth-sample/tree/master/src/rakuten)
+* [Azure AD v1](https://github.com/mattdot/botauth-sample/tree/master/src/aadv1) (coming soon)
+* [Azure AD v2](https://github.com/mattdot/botauth-sample/tree/master/src/aadv2) (coming soon)
+* [Visual Studio Online](https://github.com/mattdot/botauth-sample/tree/master/src/vso) (coming soon)
+
 More sample code is available at https://github.com/mattdot/botauth-sample/
 
 # Authenticated Dialog
