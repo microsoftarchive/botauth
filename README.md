@@ -1,6 +1,6 @@
 # BotAuth [![Build Status](https://travis-ci.org/mattdot/botauth.svg?branch=master)](https://travis-ci.org/mattdot/botauth)
 
-	botauth is still pre-release and under active development. APIs may change until we get to v1.0.
+	botauth is still pre-release and under active development. Please evaluate and provide feedback.
 
 *botauth* is authentication middleware for bots built using the [botframework](http://botframework.com) and nodejs. *botauth* is leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party oauth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0. 
 
