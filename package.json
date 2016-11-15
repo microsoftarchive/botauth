@@ -1,6 +1,6 @@
 {
   "name": "botauth",
-  "version": "0.2.10-2",
+  "version": "0.2.10-3",
   "description": "OAuth Middleware for BotFramework",
   "main": "./lib/",
   "scripts": {
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/mattdot/botauth#readme",
   "dependencies": {
-    "botbuilder": "^3.4.2",
+    "botbuilder": "^3.4.4",
     "cookie": "^0.3.1",
     "passport": "^0.3.2",
     "passport-strategy": "^1.0.0"
