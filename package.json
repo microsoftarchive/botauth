@@ -37,6 +37,7 @@
   },
   "typings": "lib/index",
   "files": [
-    "lib/"
+    "lib/",
+    "locale/"
   ]
 }
