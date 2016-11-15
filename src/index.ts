@@ -30,6 +30,7 @@
 //
 
 import url = require("url");
+import path = require("path");
 import crypto = require("crypto");
 import builder = require("botbuilder");
 import passport = require("passport");
@@ -44,7 +45,7 @@ export { IResumptionProvider, CookieResumption };
 import { IChallengeResponse, IUser, IServer, IServerRequest, IServerResponse, RequestHandler, NextFunction } from "./interfaces";
 export { IChallengeResponse, IUser };
 
-const DIALOG_LIBRARY: string = "botauth";
+const DIALOG_LIBRARY: string = "botauth"; //
 const DIALOG_ID: string = "auth";
 const DIALOG_FULLNAME: string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
 
@@ -139,6 +140,7 @@ export class BotAuthenticator {
 
         // add auth dialogs to a library
         let lib = new builder.Library(DIALOG_LIBRARY);
+        lib.localePath(path.join(__dirname, "../locale/"));
         lib.dialog(DIALOG_ID, new AuthDialog({ secret: this.options.secret }));
         this.bot.library(lib);
     }
@@ -280,8 +282,8 @@ export class BotAuthenticator {
             let user: any = (<any>req).user;
 
             if (!user) {
-                console.log("verify function yielded no user");
                 res.status(403);
+                res.send("verify function yielded no user");
                 res.end();
                 return;
             }

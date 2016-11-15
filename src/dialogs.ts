@@ -55,7 +55,7 @@ const defaultOptions: IAuthDialogOptions = {
     cancelMatches: /cancel/,
     reloadText: "starting over",
     reloadMatches: /try again/,
-    unauthorizedText: "The code you entered an invalid code or your authorization has expired.  Please try again.",
+    unauthorizedText: "unauthorized",
     secret: null
 } as IAuthDialogOptions;
 
@@ -125,7 +125,7 @@ export class AuthDialog extends builder.Dialog {
             clearResponse(mk);
 
             // tell the user that the magic code was wrong and to try again
-            session.send(this.options.unauthorizedText);
+            session.send(session.localizer.gettext(session.preferredLocale(), "unauthorized", "BotAuth")); 
         };
 
         let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
@@ -140,18 +140,16 @@ export class AuthDialog extends builder.Dialog {
             // response data is encrypted with magic number, so decrypt it.
             let decipher = crypto.createDecipher("aes192", userEntered + this.options.secret);
             let json = decipher.update(encryptedResponse, "base64", "utf8") + decipher.final("utf8");
-            console.log("json=%j", json);
+
             // decrypted plain-text is json, so parse it
             response = JSON.parse(json);
         } catch (error) {
             // decryption failure means that the user provided the wrong magic number
-            console.log(error);
             return wrongCode(magicKey);
         }
 
         // successfully decrypted, but no response or user. should not happen
         if (!response || !response.user) {
-            console.log("no response or user");
             return wrongCode(magicKey);
         }
 

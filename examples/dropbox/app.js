@@ -1,11 +1,13 @@
 "use strict";
 
 const url = require("url");
+const path = require("path");
 const https = require("https");
 const restify = require("restify");
 const builder = require("botbuilder");
 const envx = require("envx");
-const botauth = require("botauth");
+// const botauth = require("botauth"); //use this one
+const botauth = require("../../lib");
 const Dropbox = require("dropbox");
 
 const upload = require("./upload");
@@ -42,13 +44,11 @@ var connector = new builder.ChatConnector({
     appPassword : MICROSOFT_APP_PASSWORD
 });
 
-var bot = new builder.UniversalBot(connector, { localizerSettings : { botLocalePath : "./locale", defaultLocale : "en" } });
+var bot = new builder.UniversalBot(connector, { localizerSettings : { botLocalePath : path.join(__dirname, "./locale"), defaultLocale : "en" } });
 server.post('/api/messages', connector.listen());
 
 var ba = new botauth.BotAuthenticator(server, bot, { baseUrl: `https://${WEBSITE_HOSTNAME}`, secret : BOTAUTH_SECRET });
 ba.provider("dropbox", (options) => {
-    console.log(options);
-
     return new DropboxOAuth2Strategy({
         clientID : DROPBOX_APP_ID,
         clientSecret : DROPBOX_APP_SECRET,
@@ -61,15 +61,22 @@ ba.provider("dropbox", (options) => {
     });
 });
 
+bot.library("BotAuth").localePath(path.join(__dirname, "./locale"));
 
 var recog = new UploadRecognizer("upload");
 
 bot.dialog("/", new builder.IntentDialog({ recognizers : [ recog ]})
+    .matches(/logout/, "/logout")
     .matches("upload", "/upload")
     .onDefault((session, args) => {
             session.endDialog("welcome");
     })
 );
+
+bot.dialog("/logout", (session) => {
+    ba.logout(session, "dropbox");
+    session.endDialog("logged_out");
+});
 
 bot.dialog("/upload", [].concat(
     (session, args, skip) => {
