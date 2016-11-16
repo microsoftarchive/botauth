@@ -1,5 +1,5 @@
 {
-  "name": "facebook",
+  "name": "botauth-facebook-account-linking",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "botauth": "^0.2.10-17",
+    "botauth": "^0.2.10",
     "botbuilder": "^3.3.3",
     "envx": "^1.0.0",
     "passport-facebook": "^2.1.1",

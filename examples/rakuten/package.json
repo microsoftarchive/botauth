@@ -17,7 +17,7 @@
   "author": "Matt Dotson <mdotson@microsoft.com>",
   "license": "MIT",
   "dependencies": {
-    "botauth": "^0.2.10-17",
+    "botauth": "^0.2.10",
     "botbuilder": "^3.3.3",
     "envx": "^1.0.0",
     "passport": "^0.3.2",

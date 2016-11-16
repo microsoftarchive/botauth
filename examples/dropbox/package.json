@@ -4,7 +4,7 @@
   "description": "botauth sample for connecting to dropbox",
   "main": "app.js",
   "dependencies": {
-    "botauth": "^0.2.10-17",
+    "botauth": "^0.2.10",
     "botbuilder": "^3.5.0-rc5",
     "dropbox": "^2.4.0",
     "envx": "^1.0.0",
