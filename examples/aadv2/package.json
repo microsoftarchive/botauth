@@ -1,0 +1,19 @@
+{
+  "name": "aadv2",
+  "version": "0.1.0",
+  "description": "BotAuth example for Azure AD v2",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "oauth",
+    "botframework",
+    "aad"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "botauth": "^0.2.10-17"
+  }
+}

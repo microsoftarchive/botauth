@@ -5,8 +5,7 @@ const builder = require("botbuilder");
 const envx = require("envx");
 const url = require("url");
 const crypto = require("crypto");
-//const botauth = require("botauth");
-const botauth = require("../../../botauth");
+const botauth = require("botauth");
 
 const passport = require("passport");
 const FacebookStrategy = require("passport-facebook").Strategy;
@@ -45,20 +44,27 @@ var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
 
 // Initialize with the strategies we want to use
-var ba = new botauth.BotAuthenticator(server, bot, {baseUrl: "https://" + WEBSITE_HOSTNAME, secret: BOTAUTH_SECRET})
-    .provider("facebook", function (options) {
-        return new FacebookStrategy({
+var ba = new botauth.BotAuthenticator(server, bot, {
+    baseUrl: "https://" + WEBSITE_HOSTNAME, 
+    secret: BOTAUTH_SECRET
+});
+
+ba.provider("facebook", function (options) {
+    return new FacebookStrategy(
+        {
             clientID: FACEBOOK_APP_ID,
             clientSecret: FACEBOOK_APP_SECRET,
             callbackURL: options.callbackURL
-        }, function (accessToken, refreshToken, profile, done) {
+        },
+        function (accessToken, refreshToken, profile, done) {
             profile = profile || {};
             profile.accessToken = accessToken;
             profile.refreshToken = refreshToken;
 
             return done(null, profile);
-        });
-    });
+        }
+    );
+});
 
 /**
  * Just a page to make sure the server is running

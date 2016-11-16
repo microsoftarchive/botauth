@@ -4,7 +4,6 @@ const restify = require("restify");
 const builder = require("botbuilder");
 const envx = require("envx");
 const botauth = require("botauth");
-//const botauth = require("../../../botauth");
 
 const passport = require("passport");
 const FacebookStrategy = require("passport-facebook").Strategy;

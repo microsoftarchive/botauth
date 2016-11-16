@@ -9,8 +9,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "botauth": "^0.2.1",
-    "botbuilder": "^3.3.3",
+    "botauth": "^0.2.10-17",
+    "botbuilder": "^3.4.4",
     "envx": "^1.0.0",
     "passport-facebook": "^2.1.1",
     "restify": "^4.1.1"

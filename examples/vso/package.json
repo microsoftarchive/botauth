@@ -1,7 +1,7 @@
 {
-  "name": "botauth-rakuten",
-  "version": "1.0.0",
-  "description": "sample showing how to use botauth with rakuten oauth",
+  "name": "botauth-vso",
+  "version": "0.1.0",
+  "description": "BotAuth example for Visual Studio Online",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,17 +11,14 @@
     "url": "git+https://github.com/mattdot/botauth.git"
   },
   "keywords": [
-    "rakuten",
-    "oauth"
+    "vso",
+    "botframework",
+    "oauth",
+    "botauth"
   ],
   "author": "Matt Dotson <mdotson@microsoft.com>",
   "license": "MIT",
   "dependencies": {
-    "botauth": "^0.2.10-17",
-    "botbuilder": "^3.3.3",
-    "envx": "^1.0.0",
-    "passport": "^0.3.2",
-    "passport-rakuten": "^1.0.1",
-    "restify": "^4.1.1"
+    "botauth": "^0.2.10-17"
   }
 }
