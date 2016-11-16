@@ -29,6 +29,37 @@ function getSourceToken(callback) {
     });
 }
 
+function getSourceMeta(options, callback) {
+    let u = url.parse(options.sourceUrl.replace("/views/original", ""));
+    let token = options.sourceToken;
+
+    let client = restify.createClient({
+        url : url.resolve(u, "/"),
+        headers : {
+            Authorization : `Bearer ${token}`
+        }
+    });
+
+    let cb = 0;
+    
+    client.get(u.path, (err, req) => {
+        req.on("result", function(err, result) {
+            if(err) {
+                return callback(err);
+            }
+
+            var data = "";
+            result.on("data", function(chunk) {
+                data += chunk;
+            });
+
+            result.on("end", function() {
+                callback(null, data);
+            });
+        });
+    });
+}
+
 /**
  * 
  */
@@ -109,12 +140,18 @@ function upload(options, callback) {
             callback(tokenErr, null);
         }
 
-        getSourceData({ sourceUrl : options.sourceUrl, sourceToken : token }, (sourceErr, sourceStream) => {
-            if(sourceErr) {
-                callback(sourceErr, null);
+        getSourceMeta({ sourceUrl : options.sourceUrl, sourceToken : token }, (metaErr, meta) => {
+            if(metaErr) {
+                return callback(metaErr);
             }
+            
+            getSourceData({ sourceUrl : options.sourceUrl, sourceToken : token }, (sourceErr, sourceStream) => {
+                if(sourceErr) {
+                    return callback(sourceErr, null);
+                }
 
-            dropboxUpload({ dropboxToken : options.dropboxToken, path : options.path, sourceStream : sourceStream }, callback);
+                dropboxUpload({ dropboxToken : options.dropboxToken, path : options.path, sourceStream : sourceStream }, callback);
+            });
         });
     });
 }

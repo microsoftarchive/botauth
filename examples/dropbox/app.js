@@ -6,8 +6,7 @@ const https = require("https");
 const restify = require("restify");
 const builder = require("botbuilder");
 const envx = require("envx");
-// const botauth = require("botauth"); //use this one
-const botauth = require("../../lib");
+const botauth = require("botauth");
 const Dropbox = require("dropbox");
 
 const upload = require("./upload");
@@ -61,7 +60,7 @@ ba.provider("dropbox", (options) => {
     });
 });
 
-bot.library("BotAuth").localePath(path.join(__dirname, "./locale"));
+//bot.library("BotAuth").localePath(path.join(__dirname, "./locale"));
 
 var recog = new UploadRecognizer("upload");
 
@@ -99,10 +98,14 @@ bot.dialog("/upload", [].concat(
         }
 
         let attachmentUrl = session.dialogData.attachments[0].contentUrl;
-        let filePath = "/bot.png"; // todo: how to get the file name from attachments???
 
-        upload({ sourceUrl : attachmentUrl, dropboxToken : user.accessToken, path : filePath }, (err, result) => {
-            session.endDialog(`uploaded your file to '${ result.path_display }' in your dropbox.`);
+        upload({ sourceUrl : attachmentUrl, dropboxToken : user.accessToken, path : "/" }, (err, result) => {
+            if(err) {
+                session.endDialog(`error uploading your file '${ err }'.`);
+            } else {
+                session.endDialog(`uploaded your file to '${ result.path_display }' in your dropbox.`);
+            }
+            
         });
     }
 ));

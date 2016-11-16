@@ -45,9 +45,7 @@ export { IResumptionProvider, CookieResumption };
 import { IChallengeResponse, IUser, IServer, IServerRequest, IServerResponse, RequestHandler, NextFunction } from "./interfaces";
 export { IChallengeResponse, IUser };
 
-const DIALOG_LIBRARY: string = "botauth"; //
-const DIALOG_ID: string = "auth";
-const DIALOG_FULLNAME: string = `${DIALOG_LIBRARY}:${DIALOG_ID}`;
+import { DIALOG_LIBRARY, DIALOG_ID, DIALOG_FULLNAME } from "./consts";
 
 export interface IBotAuthenticatorOptions {
     baseUrl: string;

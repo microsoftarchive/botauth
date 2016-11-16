@@ -33,29 +33,20 @@ import builder = require("botbuilder");
 import crypto = require("crypto");
 
 import { IChallengeResponse } from "./interfaces";
+import { DIALOG_LIBRARY } from "./consts";
 
 export interface IAuthDialogOptions {
     providerId?: string;
-    text?: string;
     imageUrl?: string;
-    buttonText?: string;
     buttonUrl?: string;
-    cancelText?: string;
     cancelMatches?: RegExp;
-    reloadText?: string;
     reloadMatches?: RegExp;
-    unauthorizedText?: string;
     secret?: string;
 }
 
 const defaultOptions: IAuthDialogOptions = {
-    text: "Connect to OAuth Provider. You can say 'cancel' to go back without signing in.",
-    buttonText: "connect",
-    cancelText: "cancelling authentication...",
     cancelMatches: /cancel/,
-    reloadText: "starting over",
     reloadMatches: /try again/,
-    unauthorizedText: "unauthorized",
     secret: null
 } as IAuthDialogOptions;
 
@@ -75,8 +66,8 @@ export class AuthDialog extends builder.Dialog {
 
         this.options = Object.assign({}, defaultOptions, options);
 
-        this.cancelAction("cancel", this.options.cancelText, { matches: this.options.cancelMatches, dialogArgs : false });
-        this.reloadAction("restart", this.options.reloadText, { matches : this.options.reloadMatches});
+        this.cancelAction("cancel", "cancelled", { matches: this.options.cancelMatches });
+        this.reloadAction("restart", "restarted", { matches : this.options.reloadMatches});
     }
 
     /**
@@ -92,12 +83,12 @@ export class AuthDialog extends builder.Dialog {
         // session.save();
 
         // send the signin card to the user
-        // todo: hero card vs signincard???
+        // todo: hero card vs signincard??? 
         let msg = new builder.Message(session)
             .attachments([
                 new builder.SigninCard(session)
-                    .text(opt.text)
-                    .button(opt.buttonText, opt.buttonUrl)
+                    .text("connect_prompt")
+                    .button("connect_button", opt.buttonUrl)
             ]);
         session.send(msg);
     }
@@ -125,12 +116,12 @@ export class AuthDialog extends builder.Dialog {
             clearResponse(mk);
 
             // tell the user that the magic code was wrong and to try again
-            session.send(session.localizer.gettext(session.preferredLocale(), "unauthorized", "BotAuth")); 
+            session.send(session.localizer.gettext(session.preferredLocale(), "unauthorized", DIALOG_LIBRARY)); 
         };
 
         let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
         if (!session.conversationData.botauth || !session.conversationData.botauth.responses || !session.conversationData.botauth.responses.hasOwnProperty(magicKey)) {
-            console.log("botauth data not found in conversationData: %j", session.conversationData);
+            //console.log("botauth data not found in conversationData: %j", session.conversationData);
             // wrong magic code provided.
             return wrongCode(magicKey);
         }

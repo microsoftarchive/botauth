@@ -8,7 +8,7 @@ gulp.task("default", ['build'], function () {
 });
 
 gulp.task("dev", function(){
-   gulp.watch(['src/**/*.ts', 'gulpfile.js'], ['update-sample']); 
+   gulp.watch(['src/**/*.ts', 'gulpfile.js'], ['publish-dev']); 
 });
 
 gulp.task('build', function() {
@@ -25,6 +25,6 @@ gulp.task('publish-dev', ['version-dev'], function(){
     return run('npm publish --tag dev').exec();
 });
 
-gulp.task('update-sample', ['publish-dev'], function(callback){
-    return run('npm install botauth@dev').exec({ cwd : './examples/dropbox'});
-});
+// gulp.task('update-sample', ['publish-dev'], function(callback){
+//     return run('npm install --save botauth@dev').exec({ cwd : 'examples/dropbox'});
+// });
