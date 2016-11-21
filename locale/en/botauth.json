@@ -1,7 +1,7 @@
 {
     "connect_prompt" : "Connect to OAuth Provider. You can say 'cancel' to go back without signing in.",
     "connect_button" : "connect",
-    "unauthorized" : "The code you entered an invalid code or your authorization has expired.  Please try again, or say 'cancel' to stop trying.",
+    "unauthorized" : "The code you entered is an invalid code or your authorization has expired.  Please try again, or say 'cancel' to stop trying.",
     "reloaded" : "starting over",
     "cancelled" : "cancelling authentication..."
 }
