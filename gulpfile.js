@@ -32,13 +32,13 @@ gulp.task('version-dev', ['build'], function(){
 });
 
 gulp.task('publish-dev', ['version-dev'], function(){
-    return run('npm publish --tag dev').exec();
+    return run('npm publish --tag next').exec();
 });
 
 gulp.task('update-examples-dev', ['publish-dev'], function(callback){
     var folders = getFolders('examples');
     var tasks = folders.map(function(folder){
-        return run('npm install --save botauth@dev', { cwd: path.join(__dirname, 'examples', folder)}).exec();
+        return run('npm install --save botauth@next', { cwd: path.join(__dirname, 'examples', folder)}).exec();
     });
 
     return merge(tasks);

@@ -77,10 +77,13 @@ export class AuthDialog extends builder.Dialog {
      * @param {IAuthDialogOptions} args
      */
     public begin<T>(session: builder.Session, args?: IAuthDialogOptions): void {
-        let opt = Object.assign({}, this.options, args);
+        // persist original args to session in case we get restarted. 
+        if(!session.dialogData.savedArgs) {
+            session.dialogData. savedArgs = args || {};
+            session.save();
+        }
 
-        // let state = session.conversationData.botauth.challenge = crypto.randomBytes(32).toString('hex');
-        // session.save();
+        let opt = Object.assign({}, this.options, session.dialogData.savedArgs);
 
         // send the signin card to the user
         // todo: hero card vs signincard??? 

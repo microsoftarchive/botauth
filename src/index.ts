@@ -130,6 +130,7 @@ export class BotAuthenticator {
         // add routes for handling oauth redirect and callbacks
         this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
         this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
+        this.server.post(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
 
         // configure bot to save conversation and user scoped data
         // todo: should we use our own bot storage connection to avoid overwriting these??
@@ -177,7 +178,7 @@ export class BotAuthenticator {
                 let user = this.profile(session, providerId);
                 if (user) {
                     // user is already authenticated, forward the
-                    skip({ response: args.response, resumed: builder.ResumeReason.forward });
+                    skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
                 } else {
                     // pass context to redirect
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
