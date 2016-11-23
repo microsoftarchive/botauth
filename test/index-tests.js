@@ -4,7 +4,8 @@ const botauth = require('../lib/index');
 
 const mockServer = {
     use : () => {},
-    get : () => {}
+    get : () => {},
+    post : () => {}
 };
 
 const mockBot = {
