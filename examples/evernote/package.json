@@ -21,9 +21,11 @@
   },
   "homepage": "https://github.com/mattdot/botauth#readme",
   "dependencies": {
-    "botauth": "^0.2.11",
-    "botbuilder": "^3.4.4",
+    "botauth": "latest",
+    "botbuilder": "next",
+    "client-sessions": "^0.7.0",
     "envx": "^1.0.0",
+    "evernote": "^2.0.0-beta",
     "express-session": "^1.14.2",
     "passport": "^0.3.2",
     "passport-evernote": "^1.0.1",

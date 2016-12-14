@@ -7,7 +7,7 @@ const envx = require("envx");
 const restify = require("restify");
 const builder = require("botbuilder");
 const botauth = require("botauth");
-const session = require("express-session");
+const clientSessions = require("client-sessions");
 const Evernote = require("evernote").Evernote;
 
 const EvernoteStrategy = require("passport-evernote").Strategy;
@@ -31,16 +31,14 @@ const BOTAUTH_SECRET = envx("BOTAUTH_SECRET");
 var server = restify.createServer();
 server.use(restify.bodyParser());
 server.use(restify.queryParser());
-server.use(session({ 
-    secret : BOTAUTH_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true }
-}));
+server.use(clientSessions({ cookieName: 'session', secret: BOTAUTH_SECRET, duration: 5*60*1000 }));
 
-server.get("/", (req, res) => {
-    res.send("botauth sample for evernote");
-});
+// server.get("/", (req, res) => {
+//     res.send("botauth sample for evernote");
+// });
+
+server.get("/styles.css", restify.serveStatic({ directory : path.join(__dirname, "public"), file : "styles.css", maxAge: 0 }));
+server.get("/code", restify.serveStatic({ directory : path.join(__dirname, "public"), file : "code.html", maxAge: 0 }));
 
 var connector = new builder.ChatConnector({
     appId : MICROSOFT_APP_ID,
@@ -50,7 +48,7 @@ var connector = new builder.ChatConnector({
 var bot = new builder.UniversalBot(connector, { localizerSettings : { botLocalePath : path.join(__dirname, "./locale"), defaultLocale : "en" } });
 server.post('/api/messages', connector.listen());
 
-var ba = new botauth.BotAuthenticator(server, bot, { baseUrl: `https://${WEBSITE_HOSTNAME}`, secret : BOTAUTH_SECRET, session: true });
+var ba = new botauth.BotAuthenticator(server, bot, { baseUrl: `https://${WEBSITE_HOSTNAME}`, secret : BOTAUTH_SECRET, session: true, successRedirect : "/code" });
 ba.provider("evernote", (options) => {
     return new EvernoteStrategy({
         requestTokenURL: 'https://sandbox.evernote.com/oauth',
@@ -59,8 +57,7 @@ ba.provider("evernote", (options) => {
 
         consumerKey : EVERNOTE_CONSUMER_KEY,
         consumerSecret : EVERNOTE_CONSUMER_SECRET,
-        callbackURL : options.callbackURL,
-        session: false
+        callbackURL : options.callbackURL
     }, (token, tokenSecret, profile, done) => {
         profile.token = token;
         profile.tokenSecret = tokenSecret;
@@ -71,7 +68,7 @@ ba.provider("evernote", (options) => {
 
 bot.dialog("/", new builder.IntentDialog()
     .matches(/logout/, "/logout")
-    .matches(/hello/, "/hello")
+    .matches(/find(\s+notes)?/, "/find")
     .onDefault((session, args) => {
             session.endDialog("welcome");
     })
@@ -82,7 +79,7 @@ bot.dialog("/logout", (session) => {
     session.endDialog("logged_out");
 });
 
-bot.dialog("/hello", [].concat(
+bot.dialog("/find", [].concat(
     ba.authenticate("evernote"),
     (session, args, skip) => {
         let user = ba.profile(session, "evernote");

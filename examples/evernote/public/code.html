@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="en:locale" content="en" />
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="initial-scale=1" />
+    
+    <link rel="Shortcut Icon" href="https://evernote.com/favicon.ico" type="image/x-icon" />
+    <title>Welcome Back</title>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="wrapper"><div class="bar-header">
+      <div class="logo-bar"></div>
+    </div>  
+  <div id="container-boundingbox" class="wrapper">
+      <div id="container" class="wrapper">
+        <div class="main">
+          <div class="MinimalFormFrame"><div class="heading">
+      <div class="branding"></div>
+      <h1>Sign in</h1>
+      </div>
+  <div class="minimal-wrapper">
+    <div class="minimal-body">
+      <div class="MinimalLoginForm"><div class="signin">
+        <div>
+          
+                You're almost done. Please type 
+
+                <div id="magic_code"></div>
+
+                in our chat to complete your authentication.
+        </div>
+      </div>
+  </div></div>
+  </div>
+</div>
+
+        <div class="footer wrapper">
+  <a href="https://evernote.com/tos/" class="footer-entry" target="_blank">Terms of Service</a><a href="https://evernote.com/privacy/" class="footer-entry" target="_blank">Privacy Policy</a><span class="footer-entry last">
+    Copyright 2016 Evernote Corporation. All rights reserved.</span>
+</div>
+</div>
+    </div>
+            <script type="text/javascript">
+
+            document.getElementById("magic_code").innerText = (window.location.hash || '').replace('#', '');
+
+        </script>
+</body>
+</html>
