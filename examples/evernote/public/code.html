@@ -9,6 +9,29 @@
     <link rel="Shortcut Icon" href="https://evernote.com/favicon.ico" type="image/x-icon" />
     <title>Welcome Back</title>
     <link rel="stylesheet" href="styles.css"/>
+    <style>
+      #magic_code {
+        color: #2dbe60;
+        font-family: 'Gotham_SSm_5r',Helvetica,Arial,sans-serif;
+        text-transform: uppercase;
+        font-size: 2rem;
+        margin: 5px;
+
+        -moz-user-select: all;
+        -webkit-user-select: text;
+        -ms-user-select: text;
+        user-select: all;
+      }
+
+      .magicContainer {
+        margin: 28px;
+        text-align: center;
+      }
+
+      .magicContainer p {
+                font-size: 1.25rem;
+      }
+    </style>
 </head>
 <body class="wrapper"><div class="bar-header">
       <div class="logo-bar"></div>
@@ -18,34 +41,24 @@
         <div class="main">
           <div class="MinimalFormFrame"><div class="heading">
       <div class="branding"></div>
-      <h1>Sign in</h1>
+      <h1>You're almost done</h1>
       </div>
   <div class="minimal-wrapper">
     <div class="minimal-body">
-      <div class="MinimalLoginForm"><div class="signin">
-        <div>
-          
-                You're almost done. Please type 
-
-                <div id="magic_code"></div>
-
-                in our chat to complete your authentication.
+      <div class="MinimalLoginForm">
+        <div class="signin">
+        <div class="magicContainer">
+                <p>Please type</p>
+                <h2 id="magic_code"></h2>
+                <p>in our chat to complete your authentication</p>
         </div>
       </div>
   </div></div>
   </div>
 </div>
-
-        <div class="footer wrapper">
-  <a href="https://evernote.com/tos/" class="footer-entry" target="_blank">Terms of Service</a><a href="https://evernote.com/privacy/" class="footer-entry" target="_blank">Privacy Policy</a><span class="footer-entry last">
-    Copyright 2016 Evernote Corporation. All rights reserved.</span>
-</div>
-</div>
-    </div>
-            <script type="text/javascript">
-
-            document.getElementById("magic_code").innerText = (window.location.hash || '').replace('#', '');
-
-        </script>
+  </div>
+  <script type="text/javascript">
+    document.getElementById("magic_code").innerText = (window.location.hash || '').replace('#', '');
+  </script>
 </body>
 </html>
