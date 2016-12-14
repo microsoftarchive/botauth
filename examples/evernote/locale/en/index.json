@@ -1,0 +1,5 @@
+{
+    "welcome" : "Hello. Try saying 'take notes' and I'll help you add a note to an Evernote notebook",
+    "not_connected" : "It looks like you haven't connected me to your evernote yet.  Sign in so I can save your file.",
+    "logged_out" : "You've been logged out of evernote, and I've forgotten all connection information."
+}

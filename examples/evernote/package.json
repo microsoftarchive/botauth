@@ -1,0 +1,35 @@
+{
+  "name": "botauth-evernote",
+  "version": "1.0.0",
+  "description": "BotAuth Sample with Evernote Authentication",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattdot/botauth.git"
+  },
+  "keywords": [
+    "botauth",
+    "evernote"
+  ],
+  "author": "Matt Dotson <mdotson@microsoft.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattdot/botauth/issues"
+  },
+  "homepage": "https://github.com/mattdot/botauth#readme",
+  "dependencies": {
+    "botauth": "latest",
+    "botbuilder": "next",
+    "client-sessions": "^0.7.0",
+    "envx": "^1.0.0",
+    "escape-html": "^1.0.3",
+    "evernote": "^2.0.0-beta",
+    "express-session": "^1.14.2",
+    "passport": "^0.3.2",
+    "passport-evernote": "^1.0.1",
+    "restify": "^4.3.0"
+  }
+}
