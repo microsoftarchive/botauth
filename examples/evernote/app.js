@@ -14,7 +14,7 @@ const escapeHtml = require("escape-html");
 const EvernoteStrategy = require("passport-evernote").Strategy;
 
 //contextual service information
-const WEBSITE_HOSTNAME = envx("WEBSITE_HOSTNAME");
+const WEBSITE_HOSTNAME = envx("WEBSITE_HOSTNAME", envx("HTTP_HOST"));
 const PORT = envx("PORT", 3998);
 
 //bot application identity
