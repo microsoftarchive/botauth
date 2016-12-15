@@ -63,6 +63,7 @@ bot.dialog('/dropbox', [].concat(
 * [Facebook](https://github.com/mattdot/botauth/tree/master/examples/facebook)
 * [Dropbox](https://github.com/mattdot/botauth/tree/master/examples/dropbox)
 * [Rakuten](https://github.com/mattdot/botauth/tree/master/examples/rakuten)
+* [Evernote](https://github.com/mattdot/botauth/tree/master/examples/evernote)
 * [Azure AD v1](https://github.com/mattdot/botauth/tree/master/examples/aadv1) (coming soon)
 * [Azure AD v2](https://github.com/mattdot/botauth/tree/master/examples/aadv2) (coming soon)
 * [Visual Studio Online](https://github.com/mattdot/botauth/tree/master/examples/vso) (coming soon)
