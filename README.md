@@ -10,43 +10,56 @@
 npm install --save botauth
 ```	
 # Getting Started
+Create a *BotAuthenticator* object to configure authentication for your bot.
+
 ```javascript
-// Setup Restify Server
-var server = restify.createServer();
-server.use(restify.bodyParser());
-server.use(restify.queryParser());
+const botauth = require("botauth");
+const DropboxOAuth2Strategy = require("passport-dropbox-oauth2").Strategy;
 
-// Create chat connector with bot's Microsoft app identity
-var connector = new builder.ChatConnector({
-	appId: MICROSOFT_APP_ID,
-	appPassword: MICROSOFT_APP_PASSWORD
-});
-
-// Create bot builder client and connect it to restify server
-var bot = new builder.UniversalBot(connector);
-server.post('/api/messages', connector.listen());
+...
 
 // Initialize with the strategies we want to use
-var auth = new botauth.BotAuthenticator(server, bot, { secret : "something secret",  baseUrl : "https://" + WEBSITE_HOSTNAME })
-.provider("dropbox", function(options) { 
-	return new DropboxOAuth2Strategy({
-    		clientID : DROPBOX_APP_ID,
-    		clientSecret : DROPBOX_APP_SECRET,
-		callbackURL : options.callbackURL
-	}, function(accessToken, refreshToken, profile, done) {
-		profile.accessToken = accessToken;
-		profile.refreshToken = refreshToken;
-		done(null, profile);
-	});
-});
+var auth = new botauth.BotAuthenticator(server, bot, { 
+	secret : "something secret",  
+	baseUrl : "https://" + WEBSITE_HOSTNAME }
+);
 
-//start the server
-server.listen(PORT, function () {
-   console.log('%s listening to %s', server.name, server.url); 
-});
+// Configure the Dropbox authentication provider using the passport-dropbox strategy
+auth.provider("dropbox", 
+	function(options) { 
+		return new DropboxOAuth2Strategy(
+			{
+    				clientID : DROPBOX_APP_ID,
+    				clientSecret : DROPBOX_APP_SECRET,
+					callbackURL : options.callbackURL
+			}, 
+			function(accessToken, refreshToken, profile, done) {
+				profile.accessToken = accessToken;
+				profile.refreshToken = refreshToken;
+				done(null, profile);
+			}
+		);
+	}
+);
+
 ```
 
-## Examples
+## Authenticated Dialog
+Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
+
+```javascript
+bot.dialog('/dropbox', [].concat(
+	auth.authenticate("dropbox"), //use authenticate as a waterfall step
+	function(session, results) {
+		// this waterfall step will only be reached if authentication succeeded
+		
+		var user = auth.profile(session, "dropbox");
+		session.endDialog("Welcome " + user.displayName);
+	}
+));
+```
+
+# Examples
 * [Facebook](https://github.com/mattdot/botauth/tree/master/examples/facebook)
 * [Dropbox](https://github.com/mattdot/botauth/tree/master/examples/dropbox)
 * [Rakuten](https://github.com/mattdot/botauth/tree/master/examples/rakuten)
@@ -56,19 +69,7 @@ server.listen(PORT, function () {
 
 More sample code is available at https://github.com/mattdot/botauth/tree/master/examples/
 
-# Authenticated Dialog
-Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
-
-```javascript
-bot.dialog('/dropbox', [].concat(
-	auth.authenticate("dropbox"),
-	function(session, results) {
-		var user = auth.profile(session, "dropbox");
-		session.endDialog("Welcome " + user.displayName);
-	}
-));
-```
-
+#About this project
 This project has adopted the [Microsoft Open Source Code of
 Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct
