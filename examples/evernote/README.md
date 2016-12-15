@@ -24,4 +24,4 @@ To setup the sample you need to configure the following environment variables
 
 | Channel     | Join Url |
 |-------------|----------|
-| Skype       | [![add to skype](https://dev.botframework.com/Client/Images/Add-To-Skype-Buttons.png "")](https://join.skype.com/bot/87421e86-cd30-4817-8651-99ba663c2664) |
+| Skype       | [![add to skype](https://secure.skypeassets.com/content/dam/scom/images/add-bot-button/add-to-skype-buttons02-36px.png "")](https://join.skype.com/bot/87421e86-cd30-4817-8651-99ba663c2664) |
