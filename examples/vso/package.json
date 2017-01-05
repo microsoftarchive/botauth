@@ -19,6 +19,6 @@
   "author": "Matt Dotson <mdotson@microsoft.com>",
   "license": "MIT",
   "dependencies": {
-    "botauth": "^0.2.10"
+    "botauth": "latest"
   }
 }
