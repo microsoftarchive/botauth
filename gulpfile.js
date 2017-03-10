@@ -17,8 +17,8 @@ var tsProject = ts.createProject("tsconfig.json");
 gulp.task("default", ['build'], function () {
 });
 
-gulp.task("dev", ['build'], function(){
-   gulp.watch(['src/**/*.ts', 'locale/**/*.json'], ['update-examples-dev']);
+gulp.task("watch", ['build'], function(){
+   gulp.watch(['src/**/*.ts', 'locale/**/*.json'], ['build']);
 });
 
 gulp.task('build', function() {
@@ -35,28 +35,10 @@ gulp.task('publish-dev', ['version-dev'], function(){
     return run('npm publish --tag next').exec();
 });
 
-gulp.task('update-examples-dev', ['publish-dev'], function(callback){
-    var folders = getFolders('examples');
-    var tasks = folders.map(function(folder){
-        return run('npm install --save botauth@next', { cwd: path.join(__dirname, 'examples', folder)}).exec();
-    });
-
-    return merge(tasks);
-});
-
 gulp.task('version', ['build'], function(){
     return run('npm version patch').exec();
 });
 
 gulp.task('publish', ['version'], function(){
     return run('npm publish').exec();
-});
-
-gulp.task('update-examples', ['publish'], function(callback){
-    var folders = getFolders('examples');
-    var tasks = folders.map(function(folder){
-        return run('npm install --save botauth@*', { cwd: path.join(__dirname, 'examples', folder)}).exec();
-    });
-
-    return merge(tasks);
 });

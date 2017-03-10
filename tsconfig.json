@@ -9,13 +9,9 @@
         "removeComments": true,
         "declaration": true
     },
-    "files": [
+    "include": [
       "typings/index.d.ts",
-      "src/consts.ts",
-      "src/index.ts",
-      "src/dialogs.ts",
-      "src/interfaces.ts",
-      "src/resumption.ts"  
+      "src/**/*.ts"
     ],
     "exclude": [ ]
 }

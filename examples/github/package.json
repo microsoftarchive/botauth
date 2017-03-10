@@ -1,0 +1,25 @@
+{
+  "name": "botauth-github",
+  "version": "1.0.0",
+  "description": "BotAuth Sample with Github Authentication",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattdot/botauth.git"
+  },
+  "keywords": [
+    "botbuilder",
+    "botframework",
+    "botauth",
+    "github"
+  ],
+  "author": "Matt Dotson <mdotson@microsoft.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattdot/botauth/issues"
+  },
+  "homepage": "https://github.com/mattdot/botauth#readme"
+}

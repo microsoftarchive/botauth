@@ -9,6 +9,7 @@ const botauth = require("botauth");
 
 const passport = require("passport");
 const FacebookStrategy = require("passport-facebook").Strategy;
+const GithubStrategy = require("passport-github").Strategy;
 
 //contextual service information
 const WEBSITE_HOSTNAME = envx("WEB_HOSTNAME");
@@ -23,10 +24,11 @@ const FACEBOOK_APP_ID = envx("FACEBOOK_APP_ID");
 const FACEBOOK_APP_SECRET = envx("FACEBOOK_APP_SECRET");
 const FACEBOOK_PAGE_ACCESS_TOKEN = envx("FACEBOOK_PAGE_ACCESS_TOKEN");
 
+const GITHUB_CLIENT_ID = envx("GITHUB_CLIENT_ID");
+const GITHUB_CLIENT_SECRET = envx("GITHUB_CLIENT_SECRET");
+
 //encryption key for saved state
 const BOTAUTH_SECRET = envx("BOTAUTH_SECRET");
-
-const LUIS_URL = envx("LUIS_URL");
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -46,7 +48,12 @@ server.post('/api/messages', connector.listen());
 // Initialize with the strategies we want to use
 var ba = new botauth.BotAuthenticator(server, bot, {
     baseUrl: "https://" + WEBSITE_HOSTNAME, 
-    secret: BOTAUTH_SECRET
+    secret: BOTAUTH_SECRET,
+    channels : {
+        facebook : {
+            useAccountLinking : true //this is actually on by default
+        }
+    }
 });
 
 ba.provider("facebook", function (options) {
@@ -66,34 +73,55 @@ ba.provider("facebook", function (options) {
     );
 });
 
+// ba.provider(GithubStrategy, {
+//     clientID: GITHUB_CLIENT_ID,
+//     clientSecret: GITHUB_CLIENT_SECRET
+// });
+
+ba.provider("github", function(options) {
+    return new GithubStrategy(
+        {
+            clientID: GITHUB_CLIENT_ID,
+            clientSecret: GITHUB_CLIENT_SECRET,
+            callbackURL : options.callbackURL
+        },
+        function(accessToken, refreshToken, profile, done) {
+            //ba.login(req.user, "github", profile, { accessToken: accessToken, refreshToken: refreshToken });
+            profile = profile || {};
+            profile.accessToken = accessToken;
+            profile.refreshToken = refreshToken;
+
+            return done(null, profile);
+        }
+    );
+});
+
 /**
  * Just a page to make sure the server is running
  */
 server.get("/", function (req, res) {
-    res.send("facebook");
+    res.send("facebook account linking sample");
 });
 
-server.get("/account_linking", function (req, res) {
-    console.log(req.query.account_linking_token);
-    console.log(req.query.redirect_uri);
+// server.get("/account_linking", function (req, res) {
+//     console.log(req.query.account_linking_token);
+//     console.log(req.query.redirect_uri);
 
-    //var redirectUri = url.parse(req.query.redirect_uri);
-    var authCode = encodeURIComponent(crypto.randomBytes(54).toString("base64"));
-    res.status(302);
-    res.header("Location", `${req.query.redirect_uri}&authorization_code=${authCode}`);
-    res.send("redirecting");
-    res.end();
-});
+//     //var redirectUri = url.parse(req.query.redirect_uri);
+//     var authCode = encodeURIComponent(crypto.randomBytes(54).toString("base64"));
+//     res.status(302);
+//     res.header("Location", `${req.query.redirect_uri}&authorization_code=${authCode}`);
+//     res.send("redirecting");
+//     res.end();
+// });
 
 //=========================================================
 // Bot Dialogs
 //=========================================================
-var recog = new builder.LuisRecognizer(LUIS_URL);
-
-bot.dialog('/', new builder.IntentDialog({recognizers: [recog]})
-    .matches("SayHello", "/hello")
-    .matches("GetProfile", "/profile")
-    .matches("Logout", "/logout")
+bot.dialog('/', new builder.IntentDialog()
+    .matches(/(hello|hi)/, "/hello")
+    .matches(/profile/, "/profile")
+    .matches(/logout/, "/logout")
     .onDefault(function (session, args) {
         console.log(session.message);
         session.endDialog("I didn't understand that.  Try saying 'show my profile'.");
@@ -107,19 +135,26 @@ bot.dialog("/hello", function (session, args) {
     session.endDialog("Hello. I can help you get information from facebook.  Try saying 'get profile'.");
 });
 
-bot.on("account_linking_callback", function (data) {
-    console.log(data);
-});
+// bot.on("account_linking_callback", function (data) {
+//     console.log(data);
+// });
 
-bot.dialog("/profile", function(session, args) {
-    var client = restify.createJsonClient({url: 'https://graph.facebook.com'});
-    client.get(`/v2.6/${encodeURI(session.message.address.user.id)}?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=${encodeURIComponent(FACEBOOK_PAGE_ACCESS_TOKEN)}`, function (err, req, res, obj) {
-        console.log(obj);
-        var msg = new builder.Message(session);
-        msg.addAttachment(new builder.HeroCard(session).text(`${obj.first_name} ${obj.last_name}`).subtitle(obj.locale).images([new builder.CardImage(session).url(obj.profile_pic)]));
-        session.endDialog(msg);
-    });
-});
+bot.dialog("/profile", [].concat(
+    ba.authenticate("github"),
+    function(session, args) {
+        session.send("hello " + ba.profile("github").displayName);
+    }
+));
+
+// bot.dialog("/profile", function(session, args) {
+//     var client = restify.createJsonClient({url: 'https://graph.facebook.com'});
+//     client.get(`/v2.6/${encodeURI(session.message.address.user.id)}?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=${encodeURIComponent(FACEBOOK_PAGE_ACCESS_TOKEN)}`, function (err, req, res, obj) {
+//         console.log(obj);
+//         var msg = new builder.Message(session);
+//         msg.addAttachment(new builder.HeroCard(session).text(`${obj.first_name} ${obj.last_name}`).subtitle(obj.locale).images([new builder.CardImage(session).url(obj.profile_pic)]));
+//         session.endDialog(msg);
+//     });
+// });
 
 // bot.dialog("/profile", function (session, args) {
 //     var msg = new builder.Message(session).sourceEvent({
@@ -186,7 +221,7 @@ bot.dialog("/logout", [
         builder.Prompts.confirm(session, "are you sure you want to logout");        
     }, function (session, args) {
         if (args.response) {
-            ba.logout(session, "facebook");
+            ba.logout(session, "github");
             session.endDialog("you've been logged out.");
         } else {
             session.endDialog("you're still logged in");

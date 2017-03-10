@@ -1,18 +1,23 @@
 {
   "name": "botauth-facebook-account-linking",
   "version": "1.0.0",
-  "description": "",
+  "description": "Example bot showing how to use facebook account linking flow",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattdot/botauth.git"
+  },
+  "author": "Matt Dotson <mdotson@microsoft.com>",
   "license": "MIT",
   "dependencies": {
-    "botauth": "^0.2.10",
-    "botbuilder": "^3.3.3",
+    "botauth": "latest",
+    "botbuilder": "latest",
     "envx": "^1.0.0",
     "passport-facebook": "^2.1.1",
-    "restify": "^4.1.1"
+    "passport-github": "^1.1.0",
+    "restify": "^4.3.0"
   }
 }

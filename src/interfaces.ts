@@ -30,6 +30,32 @@
 //
 
 import express = require("express");
+import builder = require("botbuilder");
+
+export interface IBotAuthenticatorOptions {
+    baseUrl: string;
+    basePath?: string;
+    secret: string;
+    resumption?: IResumptionProvider;
+    successRedirect?: string;
+    session?: boolean;
+}
+
+export interface IBotAuthenticator {
+    server : IServer,
+    bot : builder.UniversalBot
+};
+
+export interface IResumptionProvider {
+    persistHandler(): (req: any, res: any, next: any) => void;
+    restoreHandler(): (req: any, res: any, next: any) => void;
+}
+
+export interface IFlow {
+    readonly id : string;
+    login(session : builder.Session) : void;
+    logout(session : builder.Session) : void;
+}
 
 export interface IUser {
     id: string;
@@ -51,10 +77,20 @@ export interface IChallengeResponse {
     timestamp: Date;
 }
 
+export interface IProvider {
+    //authenticate(req : IServerRequest, options : any) : void;
+}
+
+export interface IProviderOptions {
+    bot : builder.UniversalBot;
+    server: IServer;
+}
+
 export interface IServer extends express.Application {
 }
 
 export interface IServerRequest extends express.Request {
+    query : any
 }
 
 export interface IServerResponse extends express.Response {

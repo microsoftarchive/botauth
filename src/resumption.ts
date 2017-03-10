@@ -32,10 +32,7 @@
 import crypto = require("crypto");
 import cookie = require("cookie");
 
-export interface IResumptionProvider {
-    persistHandler(): (req: any, res: any, next: any) => void;
-    restoreHandler(): (req: any, res: any, next: any) => void;
-}
+import { IResumptionProvider } from "./interfaces";
 
 /**
  * Default implementation of IResumptionProvider uses cookies to store state
