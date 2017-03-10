@@ -23,8 +23,6 @@ const PINTEREST_APP_SECRET = envx("PINTEREST_APP_SECRET");
 //encryption key for saved state
 const BOTAUTH_SECRET = envx("BOTAUTH_SECRET");
 
-const LUIS_URL = envx("LUIS_URL");
-
 // Setup Restify Server
 var server = restify.createServer();
 server.use(restify.bodyParser());
@@ -66,19 +64,17 @@ server.get("/", (req, res) => {
 //=========================================================
 // Bot Dialogs
 //=========================================================
-var recog = new builder.LuisRecognizer(LUIS_URL);
-
-bot.dialog('/', new builder.IntentDialog({ recognizers : [ recog ]})
-    .matches("SayHello", "/hello")
-    .matches("GetProfile", "/profile")
-    .matches("Logout", "/logout")
+bot.dialog('/', new builder.IntentDialog()
+    .matches(/^hello/i, "/hello")
+    .matches(/^profile/i, "/profile")
+    .matches(/^logout/i, "/logout")
     .onDefault((session, args) => {
-        session.endDialog("I didn't understand that.  Try saying 'show my profile'.");
+        session.endDialog("I didn't understand that.  Try saying 'profile'.");
     })
 );
 
 bot.dialog("/hello", (session, args) => {
-    session.endDialog("Hello. I can help you get information from pinterest.  Try saying 'get profile'.");
+    session.endDialog("Hello. I can help you get information from pinterest.  Try saying 'profile'.");
 });
 
 bot.dialog("/profile", [].concat(
