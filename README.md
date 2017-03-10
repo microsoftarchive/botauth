@@ -2,13 +2,13 @@
 
 	botauth is still pre-release and under active development. Please evaluate and provide feedback.
 
-*botauth* is authentication middleware for bots built using the [botframework](http://botframework.com) and nodejs. *botauth* is leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party oauth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0. 
+*botauth* is authentication middleware for bots built using the [botframework](http://botframework.com) and nodejs. *botauth* is leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party oauth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0.
 
 # Setup
-*botauth* is available as an npm package 
+*botauth* is available as an npm package
 ```bash
 npm install --save botauth
-```	
+```
 # Getting Started
 Create a *BotAuthenticator* object to configure authentication for your bot.
 
@@ -19,20 +19,20 @@ const DropboxOAuth2Strategy = require("passport-dropbox-oauth2").Strategy;
 ...
 
 // Initialize with the strategies we want to use
-var auth = new botauth.BotAuthenticator(server, bot, { 
-	secret : "something secret",  
+var auth = new botauth.BotAuthenticator(server, bot, {
+	secret : "something secret",
 	baseUrl : "https://" + WEBSITE_HOSTNAME }
 );
 
 // Configure the Dropbox authentication provider using the passport-dropbox strategy
-auth.provider("dropbox", 
-	function(options) { 
+auth.provider("dropbox",
+	function(options) {
 		return new DropboxOAuth2Strategy(
 			{
     				clientID : DROPBOX_APP_ID,
     				clientSecret : DROPBOX_APP_SECRET,
 					callbackURL : options.callbackURL
-			}, 
+			},
 			function(accessToken, refreshToken, profile, done) {
 				profile.accessToken = accessToken;
 				profile.refreshToken = refreshToken;
@@ -52,7 +52,7 @@ bot.dialog('/dropbox', [].concat(
 	auth.authenticate("dropbox"), //use authenticate as a waterfall step
 	function(session, results) {
 		// this waterfall step will only be reached if authentication succeeded
-		
+
 		var user = auth.profile(session, "dropbox");
 		session.endDialog("Welcome " + user.displayName);
 	}
@@ -61,6 +61,7 @@ bot.dialog('/dropbox', [].concat(
 
 # Examples
 * [Facebook](https://github.com/mattdot/botauth/tree/master/examples/facebook)
+* [Pinterest](https://github.com/mattdot/botauth/tree/master/examples/pinterest)
 * [Dropbox](https://github.com/mattdot/botauth/tree/master/examples/dropbox)
 * [Rakuten](https://github.com/mattdot/botauth/tree/master/examples/rakuten)
 * [Evernote](https://github.com/mattdot/botauth/tree/master/examples/evernote)
