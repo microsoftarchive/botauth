@@ -77,22 +77,44 @@ export class AuthDialog extends builder.Dialog {
      * @param {IAuthDialogOptions} args
      */
     public begin<T>(session: builder.Session, args?: IAuthDialogOptions): void {
-        // persist original args to session in case we get restarted. 
+        // persist original args to session in case we get restarted.
         if(!session.dialogData.savedArgs) {
             session.dialogData. savedArgs = args || {};
             session.save();
         }
 
         let opt = Object.assign({}, this.options, session.dialogData.savedArgs);
+        let msg;
 
         // send the signin card to the user
-        // todo: hero card vs signincard??? 
-        let msg = new builder.Message(session)
-            .attachments([
-                new builder.SigninCard(session)
-                    .text("connect_prompt")
-                    .button("connect_button", opt.buttonUrl)
-            ]);
+        // todo: hero card vs signincard???
+        switch (session.message.source) {
+            case 'msteams':
+                // Teams does not support SigninCard yet.
+                msg = new builder.Message(session)
+                    .attachments([
+                        new builder.ThumbnailCard(session)
+                            .text("connect_prompt")
+                            .buttons([
+                                new builder.CardAction(session)
+                                    .type("openUrl")
+                                    .value(opt.buttonUrl)
+                                    .title("connect_button")
+                            ])
+                    ]);
+                break;
+            case 'emulator':
+            case 'skype':
+            case 'slack':
+            default:
+                msg = new builder.Message(session)
+                    .attachments([
+                        new builder.SigninCard(session)
+                            .text("connect_prompt")
+                            .button("connect_button", opt.buttonUrl)
+                    ]);
+        }
+
         session.send(msg);
     }
 
@@ -119,7 +141,7 @@ export class AuthDialog extends builder.Dialog {
             clearResponse(mk);
 
             // tell the user that the magic code was wrong and to try again
-            session.send(session.localizer.gettext(session.preferredLocale(), "unauthorized", DIALOG_LIBRARY)); 
+            session.send(session.localizer.gettext(session.preferredLocale(), "unauthorized", DIALOG_LIBRARY));
         };
 
         let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
