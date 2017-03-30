@@ -89,6 +89,7 @@ export class AuthDialog extends builder.Dialog {
         // send the signin card to the user
         // todo: hero card vs signincard???
         switch (session.message.source) {
+            case 'cortana':
             case 'msteams':
                 // Teams does not support SigninCard yet.
                 msg = new builder.Message(session)
