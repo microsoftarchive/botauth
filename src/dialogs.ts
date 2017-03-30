@@ -84,7 +84,7 @@ export class AuthDialog extends builder.Dialog {
         }
 
         let opt = Object.assign({}, this.options, session.dialogData.savedArgs);
-        let msg;
+        let msg : builder.Message;
 
         // send the signin card to the user
         // todo: hero card vs signincard???
