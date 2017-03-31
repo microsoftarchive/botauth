@@ -34,13 +34,13 @@ import path = require("path");
 import crypto = require("crypto");
 import builder = require("botbuilder");
 import passport = require("passport");
-import Strategy = require("passport-strategy");
+import { Strategy } from "passport-strategy";
 
-import { IBotAuthenticator, IProvider, IProviderOptions, IChallengeResponse, IUser, IServer, IServerRequest, IServerResponse, RequestHandler, NextFunction, IResumptionProvider } from '../../interfaces';
+import { IBotAuthenticator, IProvider, IProviderOptions, IStrategy, IChallengeResponse, IUser, IServer, IServerRequest, IServerResponse, RequestHandler, NextFunction, IResumptionProvider } from '../../interfaces';
 import { CookieResumption } from "../../resumption";
 
 export interface IPassportProviderOptions extends IProviderOptions {
-    strategy : Strategy,
+    strategy : IStrategy,
     baseUrl: string;
     basePath?: string;
     secret: string;

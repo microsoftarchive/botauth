@@ -33,8 +33,8 @@ import url = require("url");
 import path = require("path");
 import crypto = require("crypto");
 import builder = require("botbuilder");
-import passport = require("passport");
-import Strategy = require("passport-strategy");
+import * as passport from "passport";
+import * as express from "express";
 
 import { FlowRouter }  from "./flows/index";
 import { FacebookAccountLinkingFlow } from "./flows/facebook-account-linking/index";
@@ -59,13 +59,14 @@ import {
     IProvider, 
     IProviderOptions,
     IResumptionProvider,
-    IBotAuthenticatorOptions
+    IBotAuthenticatorOptions,
+    IStrategyOptions,
+    IStrategy,
+    IAuthenticateOptions
 } from "./interfaces";
-export { IBotAuthenticator, IChallengeResponse, IUser, IProvider, IProviderOptions, IResumptionProvider, IBotAuthenticatorOptions };
+export { IBotAuthenticator, IStrategy, IStrategyOptions, IAuthenticateOptions, IChallengeResponse, IUser, IProvider, IProviderOptions, IResumptionProvider, IBotAuthenticatorOptions };
 
 import { DIALOG_LIBRARY, DIALOG_ID, DIALOG_FULLNAME } from "./consts";
-
-
 
 const defaultOptions: IBotAuthenticatorOptions = {
     basePath: "botauth",
@@ -75,17 +76,7 @@ const defaultOptions: IBotAuthenticatorOptions = {
     session: false
 };
 
-export interface IStrategyOptions {
-    callbackURL: string;
-}
 
-export interface IStrategy {
-    authenticate(req: any, options: any): void;
-}
-
-export interface IAuthenticateOptions {
-
-}
 
 /**
  * @public
@@ -171,7 +162,7 @@ export class BotAuthenticator implements IBotAuthenticator {
      * @return {BotAuth} this
      */
     public provider(name: string, factory: (options: IStrategyOptions) => IStrategy): BotAuthenticator {
-        let s: Strategy = factory({
+        let s: IStrategy = factory({
             callbackURL: this.callbackUrl(name)
         });
 

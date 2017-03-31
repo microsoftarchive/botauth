@@ -98,3 +98,16 @@ export interface IServerResponse extends express.Response {
 
 
 export { RequestHandler, NextFunction } from "express";
+
+export interface IStrategyOptions {
+    callbackURL: string;
+}
+
+export interface IStrategy {
+    name?: string;
+    authenticate(req: express.Request, options?: any): void;
+}
+
+export interface IAuthenticateOptions {
+
+}

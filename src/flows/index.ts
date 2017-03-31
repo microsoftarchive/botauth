@@ -6,7 +6,9 @@ import * as builder from "botbuilder";
 
 export { FacebookAccountLinkingFlow, MagicCodeFlow };
 
-
+/**
+ * The FlowRouter launches the right Flow depending on the channel or configuration
+ */
 export class FlowRouter {
     constructor(private flows : IFlow[] = []) {
 
