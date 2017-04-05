@@ -1,4 +1,4 @@
-# BotAuth [![Build Status](https://travis-ci.org/mattdot/botauth.svg?branch=master)](https://travis-ci.org/mattdot/botauth)
+# BotAuth [![Build Status](https://travis-ci.org/MicrosoftDX/botauth.svg?branch=master)](https://travis-ci.org/mattdot/botauth)
 
 	botauth is still pre-release and under active development. Please evaluate and provide feedback.
 
