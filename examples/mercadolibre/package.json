@@ -1,0 +1,19 @@
+{
+  "name": "botauth-mercadolibre",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "botauth": "^0.2.10",
+    "botbuilder": "^3.4.4",
+    "envx": "^1.0.0",
+    "passport": "^0.3.2",
+    "passport-mercadolibre": "0.0.2",
+    "restify": "^4.1.1"
+  }
+}
