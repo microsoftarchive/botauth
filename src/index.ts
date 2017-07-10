@@ -176,7 +176,7 @@ export class BotAuthenticator implements IBotAuthenticator {
             secret: this.options.secret,
             bot: this.bot,
             server : this.server,
-            resumption : new CookieResumption(5, this.options.secret)
+            resumption : this.options.resumption
         }));
 
         // register this authentication strategy with passport
@@ -208,7 +208,7 @@ export class BotAuthenticator implements IBotAuthenticator {
                     session.beginDialog(dialogName, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args.response
+                        originalArgs: (args || {}).response
                     });
                 }
             },
