@@ -67,7 +67,7 @@ export class MagicDialog extends builder.Dialog {
         this.options = Object.assign({}, defaultOptions, options);
 
         this.cancelAction("cancel", "cancelled", { matches: this.options.cancelMatches });
-        this.reloadAction("restart", "restarted", { matches : this.options.reloadMatches});
+        this.reloadAction("restart", "restarted", { matches: this.options.reloadMatches });
     }
 
     /**
@@ -78,21 +78,42 @@ export class MagicDialog extends builder.Dialog {
      */
     public begin<T>(session: builder.Session, args?: IMagicDialogOptions): void {
         // persist original args to session in case we get restarted. 
-        if(!session.dialogData.savedArgs) {
-            session.dialogData. savedArgs = args || {};
+        if (!session.dialogData.savedArgs) {
+            session.dialogData.savedArgs = args || {};
             session.save();
         }
 
         let opt = Object.assign({}, this.options, session.dialogData.savedArgs);
+        let card: builder.IIsAttachment;
 
         // send the signin card to the user
-        // todo: hero card vs signincard??? 
-        let msg = new builder.Message(session)
-            .attachments([
-                new builder.SigninCard(session)
+        switch (session.message.source) {
+            case 'msteams':
+                card = new builder.HeroCard(session)
+                    .title("Login")
+                    .text("connect_prompt")
+                    .buttons([
+                        builder.CardAction.openUrl(session, "connect_button", opt.buttonUrl)
+                    ])
+                break;
+
+            case 'cortana':
+                // Cortana requires the redirect_uri parameter (https://docs.microsoft.com/en-us/cortana/tutorials/bot-skills/bot-skill-auth)
+                opt.buttonUrl = opt.buttonUrl + '&redirect_uri=http://bing.com/agents/oauth';
+
+                card = new builder.SigninCard(session)
                     .text("connect_prompt")
                     .button("connect_button", opt.buttonUrl)
-            ]);
+
+                break;
+
+            default:
+                card = new builder.SigninCard(session)
+                    .text("connect_prompt")
+                    .button("connect_button", opt.buttonUrl)
+        }
+
+        const msg = new builder.Message(session).attachments([card]);
         session.send(msg);
     }
 
