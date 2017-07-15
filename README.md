@@ -18,7 +18,7 @@ const DropboxOAuth2Strategy = require("passport-dropbox-oauth2").Strategy;
 
 ...
 
-// Initialize with the strategies we want to use
+ // Initialize with the strategies we want to use
 var auth = new botauth.BotAuthenticator(server, bot, {
 	secret : "something secret",
 	baseUrl : "https://" + WEBSITE_HOSTNAME }
@@ -60,18 +60,18 @@ bot.dialog('/dropbox', [].concat(
 ```
 
 # Examples
-* [Facebook](https://github.com/mattdot/botauth/tree/master/examples/facebook)
-* [Pinterest](https://github.com/mattdot/botauth/tree/master/examples/pinterest)
-* [Dropbox](https://github.com/mattdot/botauth/tree/master/examples/dropbox)
-* [Rakuten](https://github.com/mattdot/botauth/tree/master/examples/rakuten)
-* [Evernote](https://github.com/mattdot/botauth/tree/master/examples/evernote)
-* [Azure AD v1](https://github.com/mattdot/botauth/tree/master/examples/aadv1) (coming soon)
-* [Azure AD v2](https://github.com/mattdot/botauth/tree/master/examples/aadv2)
-* [Visual Studio Online](https://github.com/mattdot/botauth/tree/master/examples/vso) (coming soon)
+* [Facebook](https://github.com/microsoftdx/botauth/tree/master/examples/facebook)
+* [Pinterest](https://github.com/microsoftdx/botauth/tree/master/examples/pinterest)
+* [Dropbox](https://github.com/microsoftdx/botauth/tree/master/examples/dropbox)
+* [Rakuten](https://github.com/microsoftdx/botauth/tree/master/examples/rakuten)
+* [Evernote](https://github.com/microsoftdx/botauth/tree/master/examples/evernote)
+* [MercadoLibre](https://github.com/microsoftdx/botauth/tree/master/examples/mercadolibre)
+* [Azure AD v2](https://github.com/microsoftdx/botauth/tree/master/examples/aadv2)
+* [Visual Studio Online](https://github.com/microsoftdx/botauth/tree/master/examples/vso) (coming soon)
 
-More sample code is available at https://github.com/mattdot/botauth/tree/master/examples/
+More sample code is available at https://github.com/microsoftdx/botauth/tree/master/examples/
 
-#About this project
+# About this project
 This project has adopted the [Microsoft Open Source Code of
 Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct
