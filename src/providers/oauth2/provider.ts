@@ -124,7 +124,14 @@ export class PassportOAuth2Provider implements IProvider
                 return;
             }
 
-            //flow.loginCompleted(null, user, resumption);
+            if (!(<any>req).locals || !(<any>req).locals.resumption) {
+                res.status(403);
+                res.send("verify function yielded no resumption token");
+                res.end();
+                return;
+            }
+
+            // flow.loginCompleted(null, user, resumption);
 
             // decode the resumption token into an address
             let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString("utf8"));
