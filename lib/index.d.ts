@@ -12,6 +12,7 @@ export interface IBotAuthenticatorOptions {
     resumption?: IResumptionProvider;
     successRedirect?: string;
     session?: boolean;
+    b2cPolicy?: string;
 }
 export interface IStrategyOptions {
     callbackURL: string;
