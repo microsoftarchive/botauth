@@ -56,9 +56,10 @@ namespace BotAuth.Controllers
                 using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, message))
                 {
                     // Get the UserData from the original conversation
-                    IStateClient sc = scope.Resolve<IStateClient>();
-                    BotData userData = await sc.BotState.GetUserDataAsync(message.ChannelId, message.From.Id);
-
+                    IBotDataStore<BotData> stateStore = scope.Resolve<IBotDataStore<BotData>>();
+                    var key = Address.FromActivity(message);
+                    var userData = await stateStore.LoadAsync(key, BotStoreType.BotUserData, CancellationToken.None);
+                    
                     // Get Access Token using authorization code
                     var authOptions = userData.GetProperty<AuthenticationOptions>($"{authProvider.Name}{ContextConstants.AuthOptions}");
                     var token = await authProvider.GetTokenByAuthCodeAsync(authOptions, code);
@@ -77,10 +78,11 @@ namespace BotAuth.Controllers
                                 userData.SetProperty($"{authProvider.Name}{ContextConstants.MagicNumberKey}", magicNumber);
                                 userData.SetProperty($"{authProvider.Name}{ContextConstants.MagicNumberValidated}", "false");
                             }
-                            sc.BotState.SetUserData(message.ChannelId, message.From.Id, userData);
+                            await stateStore.SaveAsync(key, BotStoreType.BotUserData, userData, CancellationToken.None);
+                            await stateStore.FlushAsync(key, CancellationToken.None);
                             writeSuccessful = true;
                         }
-                        catch (HttpOperationException)
+                        catch (Exception)
                         {
                             writeSuccessful = false;
                         }
