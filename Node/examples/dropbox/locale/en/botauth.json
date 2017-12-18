@@ -1,0 +1,6 @@
+{
+    "connect_prompt" : "Connect to Dropbox. You can say 'cancel' to go back without signing in.",
+    "cancelled" : "Cancelling Dropbox authentication...",
+    "connect_button" : "Connect to Dropbox"
+
+}

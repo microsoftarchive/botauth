@@ -1,5 +1,0 @@
-{
-    "welcome" : "Hello. If you upload a file to me, I'll put it in your dropbox",
-    "not_connected" : "It looks like you haven't connected me to your dropbox yet.  Sign in so I can save your file.",
-    "logged_out" : "You've been logged out of dropbox, and I've forgotten all connection information."
-}

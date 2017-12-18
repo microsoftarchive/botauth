@@ -1,0 +1,5 @@
+{
+    "connect_prompt" : "Connect to Evernote. You can say 'cancel' to go back without signing in.",
+    "cancelled" : "Cancelling Evernote authentication...",
+    "connect_button" : "Connect to Evernote"
+}

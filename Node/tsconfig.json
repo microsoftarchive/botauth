@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "outDir": "lib",
+        "noEmitOnError": true,
+        "removeComments": true,
+        "declaration": true
+    },
+    "files": [
+      "typings/index.d.ts",
+      "src/consts.ts",
+      "src/index.ts",
+      "src/dialogs.ts",
+      "src/interfaces.ts",
+      "src/resumption.ts"  
+    ],
+    "exclude": [ ]
+}
