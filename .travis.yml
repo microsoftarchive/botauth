@@ -1,4 +1,4 @@
-before_script: cd Node
+before_install: cd Node
 language: node_js
 node_js:
   - "6"
