@@ -16,6 +16,7 @@ using Microsoft.Bot.Connector;
 using Autofac;
 using BotAuth.Models;
 using Microsoft.Rest;
+using System.Configuration;
 
 namespace BotAuth.Controllers
 {
@@ -92,12 +93,28 @@ namespace BotAuth.Controllers
                     {
                         message.Text = String.Empty; // fail the login process if we can't write UserData
                         await Conversation.ResumeAsync(conversationRef, message);
-                        resp.Content = new StringContent("<html><body>Could not log you in at this time, please try again later</body></html>", System.Text.Encoding.UTF8, @"text/html");
+
+                        if (ConfigurationManager.AppSettings.AllKeys.Contains("BotAuth:ErrorHtml"))
+                        {
+                            resp.Content = new StringContent(ConfigurationManager.AppSettings["BotAuth:ErrorHtml"], System.Text.Encoding.UTF8, @"text/html");
+                        }
+                        else
+                        {
+                            resp.Content = new StringContent("<html><body>Could not log you in at this time, please try again later</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                        }                        
                     }
                     else
                     {
                         await Conversation.ResumeAsync(conversationRef, message);
-                        resp.Content = new StringContent($"<html><body>Almost done! Please copy this number and paste it back to your chat so your authentication can complete:<br/> <h1>{magicNumber}</h1>.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+
+                        if (ConfigurationManager.AppSettings.AllKeys.Contains("BotAuth:SucceedHtml"))
+                        {
+                            resp.Content = new StringContent(string.Format(ConfigurationManager.AppSettings["BotAuth:SucceedHtml"], magicNumber), System.Text.Encoding.UTF8, @"text/html");
+                        }
+                        else
+                        {
+                            resp.Content = new StringContent($"<html><body>Almost done! Please copy this number and paste it back to your chat so your authentication can complete:<br/> <h1>{magicNumber}</h1>.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                        }
                     }
                     return resp;
                 }

@@ -19,12 +19,43 @@ namespace BotAuth.Dialogs
         protected IAuthProvider authProvider;
         protected AuthenticationOptions authOptions;
         protected string prompt { get; }
+        protected string loginButtonText { get; }
+        protected string pasteNumberTip { get; }
+        protected string loggedInTip { get; }
+        protected string numberValidationErrorText { get; }
+        protected string authenticationErrorText { get; }
+        protected string signInCardReplaceText { get; }
 
-        public AuthDialog(IAuthProvider AuthProvider, AuthenticationOptions AuthOptions, string Prompt = "Please click to sign in: ")
+        /// <summary>
+        /// Create an instance of AuthDialog object.
+        /// </summary>
+        /// <param name="authProvider">Authentication provider.</param>
+        /// <param name="authOptions">Authentication options.</param>
+        /// <param name="prompt">Prompt text on sign in card. Default value is "Please click to sign in: ".</param>
+        /// <param name="loginButtonText">Text on login button. Default value is "Authentication Required".</param>
+        /// <param name="pasteNumberTip">Text of the tip to let user paste back the number. Default value is "Please paste back the number you received in your authentication screen.".</param>
+        /// <param name="loggedInTip">Text after user logged. Default value is "Thanks {0}. You are now logged in. ". "{0}" is the placeholder for user name.</param>
+        /// <param name="numberValidationErrorText">Text for number validation error. Default value is "I'm sorry but I couldn't validate your number. Please try authenticating once again. ".</param>
+        /// <param name="authenticationErrorText">Text for authentication error. Default value is "I'm sorry but something went wrong while authenticating.".</param>
+        /// <param name="signInCardReplaceText">Replace the sign in card with text for channel doesn't support sign in card. "{0}" is the placeholder for authentication url. Will use sign in card if it is set to null or string.Empty. Default value is null. </param>
+        public AuthDialog(IAuthProvider authProvider, AuthenticationOptions authOptions,
+                string prompt = "Please click to sign in: ",
+                string loginButtonText = "Authentication Required",
+                string pasteNumberTip = "Please paste back the number you received in your authentication screen.",
+                string loggedInTip = "Thanks {0}. You are now logged in. ",
+                string numberValidationErrorText = "I'm sorry but I couldn't validate your number. Please try authenticating once again. ",
+                string authenticationErrorText = "I'm sorry but something went wrong while authenticating.",
+                string signInCardReplaceText = null)
         {
-            this.prompt = Prompt;
-            this.authProvider = AuthProvider;
-            this.authOptions = AuthOptions;
+            this.authProvider = authProvider;
+            this.authOptions = authOptions;
+            this.prompt = prompt;
+            this.loginButtonText = loginButtonText;
+            this.pasteNumberTip = pasteNumberTip;
+            this.loggedInTip = loggedInTip;
+            this.numberValidationErrorText = numberValidationErrorText;
+            this.authenticationErrorText = authenticationErrorText;
+            this.signInCardReplaceText = signInCardReplaceText;
         }
 
         public async Task StartAsync(IDialogContext context)
@@ -70,7 +101,7 @@ namespace BotAuth.Dialogs
                     {
                         if (msg.Text == null)
                         {
-                            await context.PostAsync($"Please paste back the number you received in your authentication screen.");
+                            await context.PostAsync(pasteNumberTip);
 
                             context.Wait(this.MessageReceivedAsync);
                         }
@@ -84,7 +115,7 @@ namespace BotAuth.Dialogs
                             if (text.Length >= 6 && magicNumber.ToString() == text.Substring(0, 6))
                             {
                                 context.UserData.SetValue<string>($"{this.authProvider.Name}{ContextConstants.MagicNumberValidated}", "true");
-                                await context.PostAsync($"Thanks {authResult.UserName}. You are now logged in. ");
+                                await context.PostAsync(string.Format(loggedInTip, authResult.UserName));
                                 context.Done(authResult);
                             }
                             else
@@ -92,7 +123,7 @@ namespace BotAuth.Dialogs
                                 context.UserData.RemoveValue($"{this.authProvider.Name}{ContextConstants.AuthResultKey}");
                                 context.UserData.SetValue<string>($"{this.authProvider.Name}{ContextConstants.MagicNumberValidated}", "false");
                                 context.UserData.RemoveValue($"{this.authProvider.Name}{ContextConstants.MagicNumberKey}");
-                                await context.PostAsync($"I'm sorry but I couldn't validate your number. Please try authenticating once again. ");
+                                await context.PostAsync(numberValidationErrorText);
                                 context.Wait(this.MessageReceivedAsync);
                             }
                         }
@@ -103,7 +134,7 @@ namespace BotAuth.Dialogs
                     context.UserData.RemoveValue($"{this.authProvider.Name}{ContextConstants.AuthResultKey}");
                     context.UserData.SetValue($"{this.authProvider.Name}{ContextConstants.MagicNumberValidated}", "false");
                     context.UserData.RemoveValue($"{this.authProvider.Name}{ContextConstants.MagicNumberKey}");
-                    await context.PostAsync($"I'm sorry but something went wrong while authenticating.");
+                    await context.PostAsync(authenticationErrorText);
                     context.Done<AuthResult>(null);
                 }
             }
@@ -155,22 +186,29 @@ namespace BotAuth.Dialogs
         /// <returns>Task from Posting or prompt to the context.</returns>
         protected virtual Task PromptToLogin(IDialogContext context, IMessageActivity msg, string authenticationUrl)
         {
-            Attachment plAttachment = null;
-            SigninCard plCard;
-            if (msg.ChannelId == "msteams")
-                plCard = new SigninCard(this.prompt, GetCardActions(authenticationUrl, "openUrl"));
+            if (string.IsNullOrEmpty(signInCardReplaceText))
+            {
+                Attachment plAttachment = null;
+                SigninCard plCard;
+                if (msg.ChannelId == "msteams")
+                    plCard = new SigninCard(prompt, GetCardActions(authenticationUrl, "openUrl"));
+                else
+                    plCard = new SigninCard(prompt, GetCardActions(authenticationUrl, "signin"));
+                plAttachment = plCard.ToAttachment();
+
+                IMessageActivity response = context.MakeMessage();
+                response.Recipient = msg.From;
+                response.Type = "message";
+
+                response.Attachments = new List<Attachment>();
+                response.Attachments.Add(plAttachment);
+
+                return context.PostAsync(response); 
+            }
             else
-                plCard = new SigninCard(this.prompt, GetCardActions(authenticationUrl, "signin"));
-            plAttachment = plCard.ToAttachment();
-
-            IMessageActivity response = context.MakeMessage();
-            response.Recipient = msg.From;
-            response.Type = "message";
-
-            response.Attachments = new List<Attachment>();
-            response.Attachments.Add(plAttachment);
-
-            return context.PostAsync(response);
+            {
+                return context.PostAsync(string.Format(signInCardReplaceText, authenticationUrl));
+            }
         }
 
         private List<CardAction> GetCardActions(string authenticationUrl, string actionType)
@@ -180,7 +218,7 @@ namespace BotAuth.Dialogs
             {
                 Value = authenticationUrl,
                 Type = actionType,
-                Title = "Authentication Required"
+                Title = loginButtonText
             };
             cardButtons.Add(plButton);
             return cardButtons;
