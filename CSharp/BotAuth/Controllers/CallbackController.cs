@@ -97,7 +97,14 @@ namespace BotAuth.Controllers
                     else
                     {
                         await Conversation.ResumeAsync(conversationRef, message);
-                        resp.Content = new StringContent($"<html><body>Almost done! Please copy this number and paste it back to your chat so your authentication can complete:<br/> <h1>{magicNumber}</h1>.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                        if (authOptions.UseMagicNumber)
+                        {
+                            resp.Content = new StringContent($"<html><body>Almost done! Please copy this number and paste it back to your chat so your authentication can complete:<br/> <h1>{magicNumber}</h1>.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                        }
+                        else
+                        {
+                            resp.Content = new StringContent($"<html><body>Your authentication is complete!</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                        }
                     }
                     return resp;
                 }
