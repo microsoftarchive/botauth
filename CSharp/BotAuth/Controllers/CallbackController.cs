@@ -28,7 +28,17 @@ namespace BotAuth.Controllers
         [Route("Callback")]
         public async Task<HttpResponseMessage> Callback()
         {
-            return Request.CreateErrorResponse(HttpStatusCode.BadRequest, new Exception());
+            try
+            {
+                var resp = new HttpResponseMessage(HttpStatusCode.OK);
+                resp.Content = new StringContent($"<html><body>You have been signed out. You can now close this window.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                return resp;
+            }
+            catch (Exception ex)
+            {
+                // Callback is called with no pending message as a result the login flow cannot be resumed.
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
         }
 
         [HttpGet]
