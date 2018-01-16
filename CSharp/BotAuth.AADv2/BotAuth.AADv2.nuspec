@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>BotAuth.AADv2</id>
-    <version>3.9.0-alpha</version>
+    <version>3.11.0-alpha</version>
     <title>BotAuth.AADv2</title>
     <authors>Richard diZerega</authors>
     <owners>Richard diZerega</owners>
@@ -18,7 +18,7 @@
       <dependency id="Microsoft.AspNet.WebApi.Client" version="5.2.3" />
       <dependency id="Microsoft.AspNet.WebApi.Core" version="5.2.3" />
       <dependency id="Microsoft.AspNet.WebApi.WebHost" version="5.2.3" />
-      <dependency id="Microsoft.Bot.Builder" version="3.9.0.0" />
+      <dependency id="Microsoft.Bot.Builder" version="3.11.0" />
       <dependency id="Microsoft.Rest.ClientRuntime" version="2.3.8" />
       <dependency id="Microsoft.Identity.Client" version="1.1.0-preview" />
       <dependency id="Microsoft.IdentityModel.Protocol.Extensions" version="1.0.4.403061554" />
