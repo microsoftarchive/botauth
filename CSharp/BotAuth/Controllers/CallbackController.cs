@@ -93,13 +93,25 @@ namespace BotAuth.Controllers
                         message.Text = String.Empty; // fail the login process if we can't write UserData
                         await Conversation.ResumeAsync(conversationRef, message);
                         resp.Content = new StringContent("<html><body>Could not log you in at this time, please try again later</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                        return resp;
                     }
                     else
                     {
                         await Conversation.ResumeAsync(conversationRef, message);
-                        resp.Content = new StringContent($"<html><body>Almost done! Please copy this number and paste it back to your chat so your authentication can complete:<br/> <h1>{magicNumber}</h1>.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+
+                        // check if the user has configured an alternate magic number view
+                        if (!String.IsNullOrEmpty(authOptions.MagicNumberView))
+                        {
+                            var redirect = Request.CreateResponse(HttpStatusCode.Moved);
+                            redirect.Headers.Location = new Uri(String.Format(authOptions.MagicNumberView, magicNumber), UriKind.Relative);
+                            return redirect;
+                        }
+                        else
+                        {
+                            resp.Content = new StringContent($"<html><body>Almost done! Please copy this number and paste it back to your chat so your authentication can complete:<br/> <h1>{magicNumber}</h1>.</body></html>", System.Text.Encoding.UTF8, @"text/html");
+                            return resp;
+                        }
                     }
-                    return resp;
                 }
             }
             catch (Exception ex)

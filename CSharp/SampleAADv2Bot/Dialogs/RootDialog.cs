@@ -30,12 +30,12 @@ namespace SampleAADv2Bot.Dialogs
             // Initialize AuthenticationOptions and forward to AuthDialog for token
             AuthenticationOptions options = new AuthenticationOptions()
             {
-                UseMagicNumber = false,
                 Authority = ConfigurationManager.AppSettings["aad:Authority"],
                 ClientId = ConfigurationManager.AppSettings["aad:ClientId"],
                 ClientSecret = ConfigurationManager.AppSettings["aad:ClientSecret"],
                 Scopes = new string[] { "User.Read" },
-                RedirectUrl = ConfigurationManager.AppSettings["aad:Callback"]
+                RedirectUrl = ConfigurationManager.AppSettings["aad:Callback"],
+                MagicNumberView = "/magic.html#{0}"
             };
             await context.Forward(new AuthDialog(new MSALAuthProvider(), options), async (IDialogContext authContext, IAwaitable<AuthResult> authResult) =>
             {
