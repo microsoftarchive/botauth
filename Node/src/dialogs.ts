@@ -147,7 +147,7 @@ export class AuthDialog extends builder.Dialog {
 
         let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
         if (!session.conversationData.botauth || !session.conversationData.botauth.responses || !session.conversationData.botauth.responses.hasOwnProperty(magicKey)) {
-            //console.log("botauth data not found in conversationData: %j", session.conversationData);
+            // console.log("botauth data not found in conversationData: %j", session.conversationData);
             // wrong magic code provided.
             return wrongCode(magicKey);
         }

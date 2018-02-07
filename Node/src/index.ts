@@ -101,8 +101,8 @@ export class BotAuthenticator {
             throw new Error("options.baseUrl can not be null");
         } else {
             let parsedUrl = url.parse(this.options.baseUrl);
-            if (parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
-                throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
+            if (!parsedUrl.slashes || !parsedUrl.hostname) {
+                throw new Error("options.baseUrl must be a valid url and start with 'https://' or 'http://'.");
             }
         }
 
@@ -152,7 +152,7 @@ export class BotAuthenticator {
      * @return {BotAuth} this
      */
     public provider(name: string, factory: (options: IStrategyOptions) => IStrategy): BotAuthenticator {
-        let s: Strategy = factory({
+        let s = factory({
             callbackURL: this.callbackUrl(name)
         });
 
@@ -288,7 +288,7 @@ export class BotAuthenticator {
             }
 
             // decode the resumption token into an address
-            let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString("utf8"));
+            let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).session.resumption, "base64").toString("utf8"));
             if (!addr) {
                 // fail because we don"t have a valid bot address to resume authentication
                 res.status(403);

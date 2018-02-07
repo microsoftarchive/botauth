@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const url = require("url");
 const path = require("path");
 const crypto = require("crypto");
@@ -33,8 +34,8 @@ class BotAuthenticator {
         }
         else {
             let parsedUrl = url.parse(this.options.baseUrl);
-            if (parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
-                throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
+            if (!parsedUrl.slashes || !parsedUrl.hostname) {
+                throw new Error("options.baseUrl must be a valid url and start with 'https://' or 'http://'.");
             }
         }
         if (!this.options.secret) {
@@ -75,7 +76,7 @@ class BotAuthenticator {
     }
     authenticate(providerId, options) {
         let authSteps = [
-                (session, args, skip) => {
+            (session, args, skip) => {
                 let user = this.profile(session, providerId);
                 if (user) {
                     skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
@@ -89,7 +90,7 @@ class BotAuthenticator {
                     });
                 }
             },
-                (session, args, skip) => {
+            (session, args, skip) => {
                 if (args) {
                     if (args.resumed === builder.ResumeReason.completed || args.resumed === builder.ResumeReason.forward) {
                         skip({ response: args.response, resumed: builder.ResumeReason.forward });
@@ -153,7 +154,7 @@ class BotAuthenticator {
                 res.end();
                 return;
             }
-            let addr = JSON.parse(new Buffer(req.locals.resumption, "base64").toString("utf8"));
+            let addr = JSON.parse(new Buffer(req.session.resumption, "base64").toString("utf8"));
             if (!addr) {
                 res.status(403);
                 res.send("resumption token has expired or is invalid");
