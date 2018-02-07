@@ -188,7 +188,7 @@ export class BotAuthenticator {
                     session.beginDialog(DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args.response
+                        originalArgs: args ? args.response : {}
                     });
                 }
             },

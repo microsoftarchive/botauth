@@ -88,7 +88,7 @@ class BotAuthenticator {
                     session.beginDialog(consts_1.DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args.response
+                        originalArgs: args ? args.response : {}
                     });
                 }
             },
