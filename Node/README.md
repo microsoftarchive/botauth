@@ -60,16 +60,8 @@ bot.dialog('/dropbox', [].concat(
 ```
 
 # Examples
-* [Facebook](examples/facebook/)
-* [Pinterest](examples/pinterest/)
-* [Dropbox](examples/dropbox/)
-* [Rakuten](examples/rakuten/)
-* [Evernote](examples/evernote/)
-* [MercadoLibre](examples/mercadolibre/)
-* [Azure AD v2](examples/aadv2/)
-* [Visual Studio Online](examples/vso/) (coming soon)
 
-More sample code is available [here](examples/).
+Sample code is available [here](examples/).
 
 # About this project
 This project has adopted the [Microsoft Open Source Code of
