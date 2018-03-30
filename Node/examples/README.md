@@ -4,9 +4,11 @@ Examples for the [BotAuth](https://github.com/MicrosoftDX/botauth) Node module w
 
 ## Examples
 * [Facebook](facebook/)
+* [Pinterest](pinterest/)
 * [Dropbox](dropbox/)
 * [Rakuten](rakuten/)
 * [Evernote](evernote/)
+* [MercadoLibre](examples/mercadolibre/)
 * [Azure AD v1](aadv1/) (coming soon)
 * [Azure AD v2](aadv2/) (coming soon)
 * [Visual Studio Online](vso/) (coming soon)
