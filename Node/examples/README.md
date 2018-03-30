@@ -9,8 +9,8 @@ Examples for the [BotAuth](https://github.com/MicrosoftDX/botauth) Node module w
 * [Rakuten](rakuten/)
 * [Evernote](evernote/)
 * [MercadoLibre](examples/mercadolibre/)
+* [Azure AD v2](aadv2/)
 * [Azure AD v1](aadv1/) (coming soon)
-* [Azure AD v2](aadv2/) (coming soon)
 * [Visual Studio Online](vso/) (coming soon)
 
 ## About
