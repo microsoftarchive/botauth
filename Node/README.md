@@ -60,16 +60,16 @@ bot.dialog('/dropbox', [].concat(
 ```
 
 # Examples
-* [Facebook](https://github.com/microsoftdx/botauth/tree/master/examples/facebook)
-* [Pinterest](https://github.com/microsoftdx/botauth/tree/master/examples/pinterest)
-* [Dropbox](https://github.com/microsoftdx/botauth/tree/master/examples/dropbox)
-* [Rakuten](https://github.com/microsoftdx/botauth/tree/master/examples/rakuten)
-* [Evernote](https://github.com/microsoftdx/botauth/tree/master/examples/evernote)
-* [MercadoLibre](https://github.com/microsoftdx/botauth/tree/master/examples/mercadolibre)
-* [Azure AD v2](https://github.com/microsoftdx/botauth/tree/master/examples/aadv2)
-* [Visual Studio Online](https://github.com/microsoftdx/botauth/tree/master/examples/vso) (coming soon)
+* [Facebook](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/facebook)
+* [Pinterest](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/pinterest)
+* [Dropbox](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/dropbox)
+* [Rakuten](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/rakuten)
+* [Evernote](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/evernote)
+* [MercadoLibre](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/mercadolibre)
+* [Azure AD v2](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/aadv2)
+* [Visual Studio Online](https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/vso) (coming soon)
 
-More sample code is available at https://github.com/microsoftdx/botauth/tree/master/examples/
+More sample code is available at https://github.com/MicrosoftDX/botauth/tree/master/Node/examples/
 
 # About this project
 This project has adopted the [Microsoft Open Source Code of
