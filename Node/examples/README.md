@@ -1,6 +1,6 @@
 # BotAuth Examples
 
-Examples for the [BotAuth](https://github.com/MicrosoftDX/botauth) nodejs module which demonstrate how to authenticate a bot user, using the BotAuth authentication framework.  
+Examples for the [BotAuth](https://github.com/MicrosoftDX/botauth) Node module which demonstrate how to authenticate a bot user, using the BotAuth authentication framework.  
 
 ## Examples
 * [Facebook](facebook/)
