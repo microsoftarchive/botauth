@@ -81,7 +81,7 @@ namespace BotAuth.Dialogs
                             if (text.Contains("</at>"))
                                 text = text.Substring(text.IndexOf("</at>") + 5).Trim();
 
-                            if (text.Length >= 6 && magicNumber.ToString() == text.Substring(0, 6))
+                            if (text.Length >= 6 && text.Length < 18 && text.Contains(magicNumber.ToString()))
                             {
                                 context.UserData.SetValue<string>($"{this.authProvider.Name}{ContextConstants.MagicNumberValidated}", "true");
                                 await context.PostAsync($"Thanks {authResult.UserName}. You are now logged in. ");
