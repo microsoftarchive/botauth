@@ -11,6 +11,7 @@ exports.CookieResumption = resumption_1.CookieResumption;
 const consts_1 = require("./consts");
 const defaultOptions = {
     basePath: "botauth",
+    servicePath: "botauth",
     resumption: null,
     secret: null,
     baseUrl: null,
@@ -53,9 +54,9 @@ class BotAuthenticator {
                 done(null, userId);
             });
         }
-        this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
-        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
-        this.server.post(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
+        this.server.get(`/${this.options.servicePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
+        this.server.get(`/${this.options.servicePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
+        this.server.post(`/${this.options.servicePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
         this.bot.set("persistConversationData", true);
         this.bot.set("persistUserData", true);
         let lib = new builder.Library(consts_1.DIALOG_LIBRARY);
