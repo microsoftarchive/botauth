@@ -8,7 +8,6 @@ export { IChallengeResponse, IUser };
 export interface IBotAuthenticatorOptions {
     baseUrl: string;
     basePath?: string;
-    servicePath?: string;
     secret: string;
     resumption?: IResumptionProvider;
     successRedirect?: string;
