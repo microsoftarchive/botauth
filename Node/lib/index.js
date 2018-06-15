@@ -11,7 +11,6 @@ exports.CookieResumption = resumption_1.CookieResumption;
 const consts_1 = require("./consts");
 const defaultOptions = {
     basePath: "botauth",
-    servicePath: "botauth",
     resumption: null,
     secret: null,
     baseUrl: null,
@@ -37,6 +36,9 @@ class BotAuthenticator {
             if (parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
                 throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
             }
+        }
+        if(!this.options.servicePath){
+          this.options.servicePath =  this.options.basePath
         }
         if (!this.options.secret) {
             throw new Error("options.secret can not be null");
