@@ -15,7 +15,7 @@ const defaultOptions = {
     resumption: null,
     secret: null,
     baseUrl: null,
-    session: false
+    session: false,
 };
 class BotAuthenticator {
     constructor(server, bot, options) {
@@ -79,10 +79,12 @@ class BotAuthenticator {
             (session, args, skip) => {
                 let user = this.profile(session, providerId);
                 if (user) {
+                    args.response.user = true;
                     skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
                 }
                 else {
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
+                    this.options.resourceUrl = args.response.resourceUrl;
                     session.beginDialog(consts_1.DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
@@ -132,14 +134,16 @@ class BotAuthenticator {
         let session = this.options.session;
         return (req, res, next) => {
             let providerId = req.params.providerId;
-            return passport.authenticate(providerId, { session: session })(req, res, next);
+            const resourceUrl = this.options.resourceUrl;
+            return passport.authenticate(providerId, { session: session, resourceURL: resourceUrl })(req, res, next);
         };
     }
     passport_callback() {
         let session = this.options.session;
         return (req, res, next) => {
             let providerId = req.params.providerId;
-            return passport.authenticate(providerId, { session: session })(req, res, next);
+            const resourceUrl = this.options.resourceUrl;
+            return passport.authenticate(providerId, { session: session, resourceURL: resourceUrl })(req, res, next);
         };
     }
     credential_callback() {
@@ -206,3 +210,4 @@ class BotAuthenticator {
     }
 }
 exports.BotAuthenticator = BotAuthenticator;
+//# sourceMappingURL=index.js.map
