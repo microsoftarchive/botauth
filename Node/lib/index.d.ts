@@ -21,7 +21,6 @@ export interface IStrategy {
     authenticate(req: any, options: any): void;
 }
 export interface IAuthenticateOptions {
-    resourceURL: string;
 }
 export declare class BotAuthenticator {
     private server;

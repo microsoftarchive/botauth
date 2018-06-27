@@ -74,7 +74,6 @@ export interface IStrategy {
 }
 
 export interface IAuthenticateOptions {
-    resourceURL: string;
 }
 
 /**
