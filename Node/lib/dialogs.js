@@ -92,3 +92,4 @@ class AuthDialog extends builder.Dialog {
     }
 }
 exports.AuthDialog = AuthDialog;
+//# sourceMappingURL=dialogs.js.map

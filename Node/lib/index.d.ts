@@ -12,6 +12,7 @@ export interface IBotAuthenticatorOptions {
     resumption?: IResumptionProvider;
     successRedirect?: string;
     session?: boolean;
+    resourceUrl?: string;
 }
 export interface IStrategyOptions {
     callbackURL: string;
@@ -30,9 +31,9 @@ export declare class BotAuthenticator {
     authenticate(providerId: string, options: IAuthenticateOptions): builder.IDialogWaterfallStep[];
     profile(session: builder.Session, providerId: string): IUser;
     logout(session: builder.Session, providerId: string): void;
-    private callbackUrl(providerName);
-    private authUrl(providerName, state);
-    private passport_redirect();
-    private passport_callback();
-    private credential_callback();
+    private callbackUrl;
+    private authUrl;
+    private passport_redirect;
+    private passport_callback;
+    private credential_callback;
 }

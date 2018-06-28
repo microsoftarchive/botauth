@@ -8,7 +8,7 @@ export interface IAuthDialogOptions {
     secret?: string;
 }
 export declare class AuthDialog extends builder.Dialog {
-    private options;
+    private options?;
     constructor(options?: IAuthDialogOptions);
     begin<T>(session: builder.Session, args?: IAuthDialogOptions): void;
     replyReceived(session: builder.Session): void;
