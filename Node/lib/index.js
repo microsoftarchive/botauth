@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const url = require("url");
 const path = require("path");
 const crypto = require("crypto");
@@ -14,7 +15,7 @@ const defaultOptions = {
     resumption: null,
     secret: null,
     baseUrl: null,
-    session: false
+    session: false,
 };
 class BotAuthenticator {
     constructor(server, bot, options) {
@@ -33,8 +34,8 @@ class BotAuthenticator {
         }
         else {
             let parsedUrl = url.parse(this.options.baseUrl);
-            if (parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
-                throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
+            if (!parsedUrl.slashes || !parsedUrl.hostname) {
+                throw new Error("options.baseUrl must be a valid url and start with 'https://' or 'http://'.");
             }
         }
         if (!this.options.secret) {
@@ -75,21 +76,23 @@ class BotAuthenticator {
     }
     authenticate(providerId, options) {
         let authSteps = [
-                (session, args, skip) => {
+            (session, args, skip) => {
                 let user = this.profile(session, providerId);
                 if (user) {
+                    args.response.user = true;
                     skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
                 }
                 else {
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
+                    this.options.resourceUrl = args.response.resourceUrl;
                     session.beginDialog(consts_1.DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args.response
+                        originalArgs: args ? args.response : {}
                     });
                 }
             },
-                (session, args, skip) => {
+            (session, args, skip) => {
                 if (args) {
                     if (args.resumed === builder.ResumeReason.completed || args.resumed === builder.ResumeReason.forward) {
                         skip({ response: args.response, resumed: builder.ResumeReason.forward });
@@ -131,14 +134,16 @@ class BotAuthenticator {
         let session = this.options.session;
         return (req, res, next) => {
             let providerId = req.params.providerId;
-            return passport.authenticate(providerId, { session: session })(req, res, next);
+            const resourceUrl = this.options.resourceUrl;
+            return passport.authenticate(providerId, { session: session, resourceURL: resourceUrl })(req, res, next);
         };
     }
     passport_callback() {
         let session = this.options.session;
         return (req, res, next) => {
             let providerId = req.params.providerId;
-            return passport.authenticate(providerId, { session: session })(req, res, next);
+            const resourceUrl = this.options.resourceUrl;
+            return passport.authenticate(providerId, { session: session, resourceURL: resourceUrl })(req, res, next);
         };
     }
     credential_callback() {
@@ -153,7 +158,7 @@ class BotAuthenticator {
                 res.end();
                 return;
             }
-            let addr = JSON.parse(new Buffer(req.locals.resumption, "base64").toString("utf8"));
+            let addr = JSON.parse(new Buffer(req.session.resumption, "base64").toString("utf8"));
             if (!addr) {
                 res.status(403);
                 res.send("resumption token has expired or is invalid");
@@ -205,3 +210,4 @@ class BotAuthenticator {
     }
 }
 exports.BotAuthenticator = BotAuthenticator;
+//# sourceMappingURL=index.js.map

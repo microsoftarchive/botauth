@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const crypto = require("crypto");
 const consts_1 = require("./consts");
@@ -91,3 +92,4 @@ class AuthDialog extends builder.Dialog {
     }
 }
 exports.AuthDialog = AuthDialog;
+//# sourceMappingURL=dialogs.js.map

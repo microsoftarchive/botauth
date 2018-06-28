@@ -54,6 +54,7 @@ export interface IBotAuthenticatorOptions {
     resumption?: IResumptionProvider;
     successRedirect?: string;
     session?: boolean;
+    resourceUrl?: string;
 }
 
 const defaultOptions: IBotAuthenticatorOptions = {
@@ -61,7 +62,7 @@ const defaultOptions: IBotAuthenticatorOptions = {
     resumption: null,
     secret: null,
     baseUrl: null,
-    session: false
+    session: false,
 };
 
 export interface IStrategyOptions {
@@ -73,7 +74,6 @@ export interface IStrategy {
 }
 
 export interface IAuthenticateOptions {
-
 }
 
 /**
@@ -101,8 +101,8 @@ export class BotAuthenticator {
             throw new Error("options.baseUrl can not be null");
         } else {
             let parsedUrl = url.parse(this.options.baseUrl);
-            if (parsedUrl.protocol !== "https:" || !parsedUrl.slashes || !parsedUrl.hostname) {
-                throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
+            if (!parsedUrl.slashes || !parsedUrl.hostname) {
+                throw new Error("options.baseUrl must be a valid url and start with 'https://' or 'http://'.");
             }
         }
 
@@ -152,7 +152,7 @@ export class BotAuthenticator {
      * @return {BotAuth} this
      */
     public provider(name: string, factory: (options: IStrategyOptions) => IStrategy): BotAuthenticator {
-        let s: Strategy = factory({
+        let s = factory({
             callbackURL: this.callbackUrl(name)
         });
 
@@ -178,14 +178,17 @@ export class BotAuthenticator {
                 let user = this.profile(session, providerId);
                 if (user) {
                     // user is already authenticated, forward the
+                    args.response.user = true;
                     skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
                 } else {
                     // pass context to redirect
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
+                    // If authenticating with azure ADv1, we need a resource URL for passports redirect and callback
+                    this.options.resourceUrl = args.response.resourceUrl;
                     session.beginDialog(DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args.response
+                        originalArgs: args ? args.response : {}
                     });
                 }
             },
@@ -251,9 +254,10 @@ export class BotAuthenticator {
 
         return (req: IServerRequest, res: IServerResponse, next: NextFunction) => {
             let providerId: string = (<any>req.params).providerId;
+            const resourceUrl = this.options.resourceUrl;
 
             // this redirects to the authentication provider
-            return passport.authenticate(providerId, { session: session })(req, res, next);
+            return passport.authenticate(providerId, { session: session, resourceURL: resourceUrl } as any)(req, res, next);
         };
     }
 
@@ -265,7 +269,8 @@ export class BotAuthenticator {
 
         return (req: IServerRequest, res: IServerResponse, next: NextFunction): any => {
             let providerId: string = (<any>req.params).providerId;
-            return passport.authenticate(providerId, { session: session }) (req, res, next);
+            const resourceUrl = this.options.resourceUrl;
+            return passport.authenticate(providerId, {  session: session, resourceURL: resourceUrl } as any) (req, res, next);
         };
     }
 
@@ -288,7 +293,7 @@ export class BotAuthenticator {
             }
 
             // decode the resumption token into an address
-            let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).locals.resumption, "base64").toString("utf8"));
+            let addr: builder.IAddress = <any>JSON.parse(new Buffer((<any>req).session.resumption, "base64").toString("utf8"));
             if (!addr) {
                 // fail because we don"t have a valid bot address to resume authentication
                 res.status(403);
