@@ -79,6 +79,7 @@ class BotAuthenticator {
             (session, args, skip) => {
                 let user = this.profile(session, providerId);
                 if (user) {
+                    args.response = {};
                     args.response.user = true;
                     skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
                 }
