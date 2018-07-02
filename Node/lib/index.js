@@ -85,7 +85,7 @@ class BotAuthenticator {
                 }
                 else {
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
-                    this.options.resourceUrl = args.response.resourceUrl;
+                    this.options.resourceUrl = args.response ? args.response.resourceUrl : undefined;
                     session.beginDialog(consts_1.DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
