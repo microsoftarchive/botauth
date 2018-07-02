@@ -185,7 +185,7 @@ export class BotAuthenticator {
                     // pass context to redirect
                     let cxt = new Buffer(JSON.stringify(session.message.address)).toString("base64");
                     // If authenticating with azure ADv1, we need a resource URL for passports redirect and callback
-                    this.options.resourceUrl = args.response ? args.response.resourceUrl : undefined;
+                    this.options.resourceUrl = (args && args.response) ? args.response.resourceUrl : undefined;
                     session.beginDialog(DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
