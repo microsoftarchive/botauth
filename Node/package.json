@@ -1,6 +1,6 @@
 {
   "name": "botauth-vora",
-  "version": "0.2.18-0",
+  "version": "0.2.19-0",
   "description": "OAuth Middleware for BotFramework",
   "main": "./lib/",
   "scripts": {
