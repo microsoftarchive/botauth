@@ -178,8 +178,7 @@ export class BotAuthenticator {
                 let user = this.profile(session, providerId);
                 if (user) {
                     // user is already authenticated, forward the
-                    args.response = {};
-                    args.response.user = true;
+                    args = { response: { user: true } };
                     skip({ response: (args || {}).response, resumed: builder.ResumeReason.forward });
                 } else {
                     // pass context to redirect
