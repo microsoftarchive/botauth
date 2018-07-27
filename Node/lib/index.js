@@ -88,7 +88,8 @@ class BotAuthenticator {
                     session.beginDialog(consts_1.DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args ? args.response : {}
+                        originalArgs: args ? args.response : {},
+                        skypeSignIn: "Click the button below to sign in to Skype, then paste the code you’re given below to authenticate"
                     });
                 }
             },
@@ -194,11 +195,12 @@ class BotAuthenticator {
                         res.end();
                     }
                     else {
-                        if (this.options.successRedirect) {
-                            res.status(302);
-                            res.header("Location", `${options.successRedirect}#${encodeURIComponent(magic)}`);
-                            res.send("redirecting...");
-                            res.end();
+                        res.status(302);
+                        res.header("Location", `${options.successRedirect}#${encodeURIComponent(magic)}`);
+                        res.send("redirecting...");
+                        res.end();
+                        if (this.options.successRedirect && providerId == 'azuread-openidconnect') {
+                            res.header("Location", `${options.successRedirect}?providerId=${providerId}#${encodeURIComponent(magic)}`);
                         }
                         else {
                             res.end(`You're almost done. To complete your authentication, put "${magic}" in our chat.`);
