@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const crypto = require("crypto");
 const consts_1 = require("./consts");
@@ -27,15 +28,15 @@ class AuthDialog extends builder.Dialog {
             case 'msteams':
                 msg = new builder.Message(session)
                     .attachments([
-                    new builder.ThumbnailCard(session)
-                        .text("connect_prompt")
-                        .buttons([
-                        new builder.CardAction(session)
-                            .type("openUrl")
-                            .value(opt.buttonUrl)
-                            .title("connect_button")
-                    ])
-                ]);
+                        new builder.ThumbnailCard(session)
+                            .text("connect_prompt")
+                            .buttons([
+                                new builder.CardAction(session)
+                                    .type("openUrl")
+                                    .value(opt.buttonUrl)
+                                    .title("connect_button")
+                            ])
+                    ]);
                 break;
             case 'emulator':
             case 'skype':
@@ -43,10 +44,10 @@ class AuthDialog extends builder.Dialog {
             default:
                 msg = new builder.Message(session)
                     .attachments([
-                    new builder.SigninCard(session)
-                        .text("connect_prompt")
-                        .button("connect_button", opt.buttonUrl)
-                ]);
+                        new builder.SigninCard(session)
+                            .text(args.providerId === 'azuread-openidconnect' ? args.skypeSignIn : "connect_prompt")
+                            .button("connect_button", opt.buttonUrl)
+                    ]);
         }
         session.send(msg);
     }
@@ -91,3 +92,4 @@ class AuthDialog extends builder.Dialog {
     }
 }
 exports.AuthDialog = AuthDialog;
+//# sourceMappingURL=dialogs.js.map

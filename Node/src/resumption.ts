@@ -1,13 +1,13 @@
-// 
+//
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
-// 
+//
 // Bot Auth Github:
 // https://github.com/mattdot/BotAuth
-// 
+//
 // Copyright (c) Microsoft Corporation
 // All rights reserved.
-// 
+//
 // MIT License:
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -16,10 +16,10 @@
 // distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to
 // the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -43,13 +43,13 @@ export interface IResumptionProvider {
  */
 export class CookieResumption implements IResumptionProvider {
     /**
-     * 
+     *
      */
     constructor(private maxAge: number, private secret: string) {
     }
 
     /**
-     * 
+     *
      */
     public persistHandler(): (req: any, res: any, next: any) => void {
         let maxAge = Math.floor(this.maxAge);
@@ -58,38 +58,28 @@ export class CookieResumption implements IResumptionProvider {
         return (req, res, next) => {
             let cypher = crypto.createCipher("aes192", secret);
             let cookieValue = cypher.update(req.query.state, "utf8", "base64") + cypher.final("base64");
-
-            if (res.header("Set-Cookie")) {
-                // todo: append cookie
-            } else {
-                let c = cookie.serialize("botauth", cookieValue, { maxAge : maxAge, httpOnly : true, secure : true });
-                res.header("Set-Cookie", c);
-            }
+            req.session.resumption = cookieValue;
             next();
         };
     }
 
     /**
-     * 
+     *
      */
     public restoreHandler(): (req: any, res: any, next: any) => void {
         let secret = this.secret;
 
         // return implementation of the handler
         return (req, res, next) => {
-            let cookies: any = cookie.parse(req.headers.cookie || "");
+            let encryptedValue = req.session.resumption;
 
-            if (cookies && cookies.botauth) {
+            if (encryptedValue) {
                 let decypher = crypto.createDecipher("aes192", secret);
-                let cookieValue = decypher.update(cookies.botauth, "base64", "utf8") + decypher.final("utf8");
+                let cookieValue = decypher.update(encryptedValue, "base64", "utf8") + decypher.final("utf8");
 
                 // set the resumption token to decrypted cookie value
-                req.locals = req.locals || {};
-                req.locals.resumption = cookieValue;
-
-                // delete the cookie
-                res.header("Set-Cookie", cookie.serialize("botauth", "", { maxAge: 0, httpOnly: true, secure: true }));
-            }
+                req.session.resumption = cookieValue;
+             }
 
             next();
         };
