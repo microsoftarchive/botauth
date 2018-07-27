@@ -195,12 +195,17 @@ class BotAuthenticator {
                         res.end();
                     }
                     else {
-                        res.status(302);
-                        res.header("Location", `${options.successRedirect}#${encodeURIComponent(magic)}`);
-                        res.send("redirecting...");
-                        res.end();
                         if (this.options.successRedirect && providerId == 'azuread-openidconnect') {
+                            res.status(302);
                             res.header("Location", `${options.successRedirect}?providerId=${providerId}#${encodeURIComponent(magic)}`);
+                            res.send("redirecting...");
+                            res.end();
+                        }
+                        else if (this.options.successRedirect) {
+                            res.status(302);
+                            res.header("Location", `${options.successRedirect}#${encodeURIComponent(magic)}`);
+                            res.send("redirecting...");
+                            res.end();
                         }
                         else {
                             res.end(`You're almost done. To complete your authentication, put "${magic}" in our chat.`);
