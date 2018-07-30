@@ -188,7 +188,8 @@ export class BotAuthenticator {
                     session.beginDialog(DIALOG_FULLNAME, {
                         providerId: providerId,
                         buttonUrl: this.authUrl(providerId, cxt),
-                        originalArgs: args ? args.response : {}
+                        originalArgs: args ? args.response : {},
+                        skypeSignIn: "Click the button below to sign in to Skype, then paste the code you’re given below to authenticate"
                     });
                 }
             },
@@ -342,14 +343,20 @@ export class BotAuthenticator {
                         res.send("saving credential failed");
                         res.end();
                     } else {
-                        if (this.options.successRedirect) {
+                        if (this.options.successRedirect && providerId === "azuread-openidconnect") {
+                            res.status(302);
+                            res.header("Location", `${options.successRedirect}?providerId=${providerId}#${encodeURIComponent(magic)}`);
+                            res.send("redirecting...");
+                            res.end();
+                        }
+                        else if (this.options.successRedirect) {
                             res.status(302);
                             res.header("Location", `${options.successRedirect}#${encodeURIComponent(magic)}`);
                             res.send("redirecting...");
                             res.end();
-                        } else {
-                            // show the user the magic number they need to enter in the chat window
-                            res.end(`You're almost done. To complete your authentication, put "${ magic }" in our chat.`);
+                        }
+                        else {
+                            res.end(`You're almost done. To complete your authentication, put "${magic}" in our chat.`);
                         }
                     }
                 });
