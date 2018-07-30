@@ -42,6 +42,7 @@ export interface IAuthDialogOptions {
     cancelMatches?: RegExp;
     reloadMatches?: RegExp;
     secret?: string;
+    skypeSignIn?: string;
 }
 
 const defaultOptions: IAuthDialogOptions = {
@@ -111,7 +112,7 @@ export class AuthDialog extends builder.Dialog {
                 msg = new builder.Message(session)
                     .attachments([
                         new builder.SigninCard(session)
-                            .text("connect_prompt")
+                        .text(args.providerId === 'azuread-openidconnect' ? args.skypeSignIn : "connect_prompt")
                             .button("connect_button", opt.buttonUrl)
                     ]);
         }
@@ -147,7 +148,7 @@ export class AuthDialog extends builder.Dialog {
 
         let magicKey = crypto.createHmac("sha256", this.options.secret).update(userEntered).digest("hex");
         if (!session.conversationData.botauth || !session.conversationData.botauth.responses || !session.conversationData.botauth.responses.hasOwnProperty(magicKey)) {
-            //console.log("botauth data not found in conversationData: %j", session.conversationData);
+            // console.log("botauth data not found in conversationData: %j", session.conversationData);
             // wrong magic code provided.
             return wrongCode(magicKey);
         }

@@ -36,7 +36,7 @@ describe('BotAuthenticator', function() {
                 let ba = new botauth.BotAuthenticator({}, {}, { baseUrl : "http://botauth.azurewebsites.net", secret : "shhhhh" });
             });
         });
-        
+
         it('should error if baseUrl is does not have a protocol', function() {
             assert.throws(function() {
                 let ba = new botauth.BotAuthenticator({}, {}, { baseUrl : "//botauth.azurewebsites.net", secret : "shhhhh" });

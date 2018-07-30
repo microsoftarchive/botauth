@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const crypto = require("crypto");
 const consts_1 = require("./consts");
@@ -44,7 +45,7 @@ class AuthDialog extends builder.Dialog {
                 msg = new builder.Message(session)
                     .attachments([
                     new builder.SigninCard(session)
-                        .text("connect_prompt")
+                        .text(args.providerId === 'azuread-openidconnect' ? args.skypeSignIn : "connect_prompt")
                         .button("connect_button", opt.buttonUrl)
                 ]);
         }
@@ -91,3 +92,4 @@ class AuthDialog extends builder.Dialog {
     }
 }
 exports.AuthDialog = AuthDialog;
+//# sourceMappingURL=dialogs.js.map
