@@ -195,7 +195,7 @@ class BotAuthenticator {
                         res.end();
                     }
                     else {
-                        if (this.options.successRedirect && providerId == 'azuread-openidconnect') {
+                        if (this.options.successRedirect && providerId === "azuread-openidconnect") {
                             res.status(302);
                             res.header("Location", `${options.successRedirect}?providerId=${providerId}#${encodeURIComponent(magic)}`);
                             res.send("redirecting...");

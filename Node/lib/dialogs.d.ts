@@ -6,6 +6,7 @@ export interface IAuthDialogOptions {
     cancelMatches?: RegExp;
     reloadMatches?: RegExp;
     secret?: string;
+    skypeSignIn?: string;
 }
 export declare class AuthDialog extends builder.Dialog {
     private options?;
