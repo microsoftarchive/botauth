@@ -2,7 +2,7 @@
 
 	botauth is still pre-release and under active development. Please evaluate and provide feedback.
 
-*botauth* is authentication middleware for bots built using the [botframework](http://botframework.com) and nodejs. *botauth* is leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party oauth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0.
+*botauth* is authentication middleware for bots built using the [Bot Framework](http://botframework.com) and Node.js. *botauth* leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party OAuth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0.
 
 # Setup
 *botauth* is available as an npm package
@@ -10,7 +10,7 @@
 npm install --save botauth
 ```
 # Getting Started
-Create a *BotAuthenticator* object to configure authentication for your bot.
+Create a `BotAuthenticator` object to configure authentication for your bot.
 
 ```javascript
 const botauth = require("botauth");
@@ -45,7 +45,7 @@ auth.provider("dropbox",
 ```
 
 ## Authenticated Dialog
-Use the *authenticate* method to make sure that the user has authenticated with a OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`.  *authenticate* returns an array of dialog steps which can be combined with your own dialog steps.  Anything after *authenticate* will only be reached if the user successfully authenticates.
+Use the `authenticate` method to make sure that the user has authenticated with an OAuth provider before continuing the dialog waterfall steps.  *botauth* puts the user profile from the passport strategy in `session.userData.botauth`. The `authenticate` method returns an array of dialog steps which can be combined with your own dialog steps.  Anything after `authenticate` will only be reached if the user successfully authenticates.
 
 ```javascript
 bot.dialog('/dropbox', [].concat(
@@ -60,16 +60,8 @@ bot.dialog('/dropbox', [].concat(
 ```
 
 # Examples
-* [Facebook](examples/facebook/)
-* [Pinterest](examples/pinterest/)
-* [Dropbox](examples/dropbox/)
-* [Rakuten](examples/rakuten/)
-* [Evernote](examples/evernote/)
-* [MercadoLibre](examples/mercadolibre/)
-* [Azure AD v2](examples/aadv2/)
-* [Visual Studio Online](examples/vso/) (coming soon)
 
-More sample code is available [here](examples/).
+Sample code is available [here](examples/).
 
 # About this project
 This project has adopted the [Microsoft Open Source Code of
