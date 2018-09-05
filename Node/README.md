@@ -1,6 +1,7 @@
 # BotAuth [![Build Status](https://travis-ci.org/MicrosoftDX/botauth.svg?branch=master)](https://travis-ci.org/MicrosoftDX/botauth)
 
-	botauth is still pre-release and under active development. Please evaluate and provide feedback.
+	botauth for NodeJS is now deprecated in favor of using the built-in OAuth capabilities of the Bot Framework.  
+	A sample is here https://github.com/Microsoft/botbuilder-js/blob/master/samples/oauth-prompt-bot-es6/app.js
 
 *botauth* is authentication middleware for bots built using the [Bot Framework](http://botframework.com) and Node.js. *botauth* leverages [passportjs](http://passportjs.org) authentication strategies to help bot developers connect to 3rd party OAuth providers. You can use *botauth* to connect your bot's users to their Facebook, Dropbox, or any other API protected by OAuth 2.0.
 
