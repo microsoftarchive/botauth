@@ -37,6 +37,9 @@ class BotAuthenticator {
                 throw new Error("options.baseUrl must be a valid url and start with 'https://'.");
             }
         }
+        if(!this.options.servicePath){
+          this.options.servicePath =  this.options.basePath
+        }
         if (!this.options.secret) {
             throw new Error("options.secret can not be null");
         }
@@ -53,9 +56,9 @@ class BotAuthenticator {
                 done(null, userId);
             });
         }
-        this.server.get(`/${this.options.basePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
-        this.server.get(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
-        this.server.post(`/${this.options.basePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
+        this.server.get(`/${this.options.servicePath}/:providerId`, this.options.resumption.persistHandler(), this.passport_redirect());
+        this.server.get(`/${this.options.servicePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
+        this.server.post(`/${this.options.servicePath}/:providerId/callback`, this.passport_callback(), this.options.resumption.restoreHandler(), this.credential_callback());
         this.bot.set("persistConversationData", true);
         this.bot.set("persistUserData", true);
         let lib = new builder.Library(consts_1.DIALOG_LIBRARY);

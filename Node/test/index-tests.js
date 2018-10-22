@@ -42,5 +42,25 @@ describe('BotAuthenticator', function() {
                 let ba = new botauth.BotAuthenticator({}, {}, { baseUrl : "//botauth.azurewebsites.net", secret : "shhhhh" });
             });
         });
+
+        it('should default servicePath to botauth', function() {
+          let server = {
+            use : () => {},
+            get : (route,b,c) => {assert(route.startsWith('/botauth')) },
+            post : (route,b,c,e) => {assert(route.startsWith('/botauth'))}
+          };
+          let ba = new botauth.BotAuthenticator(server, mockBot,  { baseUrl : "https://botauth.azurewebsites.net", secret : "shhhhh" });
+          assert.equal(ba.options.servicePath, 'botauth')
+        });
+
+        it('should override servicePath when set', function() {
+          let server = {
+            use : () => {},
+            get : (route,b,c) => {assert(route.startsWith('/servicePath')) },
+            post : (route,b,c,e) => {assert(route.startsWith('/servicePath'))}
+          };
+          let ba = new botauth.BotAuthenticator(server, mockBot,  { baseUrl : "https://botauth.azurewebsites.net", secret : "shhhhh", servicePath: "servicePath" });
+          assert.equal(ba.options.servicePath, 'servicePath')
+        });
     });
 });
